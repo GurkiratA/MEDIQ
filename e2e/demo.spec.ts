@@ -122,3 +122,28 @@ test('on-device speaker model and hand tracker load in the browser', async ({ pa
   await page.getByRole('button', { name: 'Turn off camera and gestures' }).click()
   await expect(page.getByRole('button', { name: /Enable camera gesture control/ })).toBeVisible()
 })
+
+test('a failing Gemini provider falls back to labelled local rules (key held in server memory only)', async ({ page }) => {
+  await start(page)
+  await nav(page, 'AI Provider Settings')
+  await page.getByLabel('Gemini API key').fill('AIzaSyINVALID-e2e-key-not-real-000000000')
+  await page.getByRole('button', { name: 'Send to local server memory' }).click()
+  await expect(page.getByText('Sent to local server memory')).toBeVisible()
+  await expect(page.getByLabel('Gemini API key')).toHaveValue('')
+  try {
+    // Key must not be persisted anywhere in the browser.
+    const stored = await page.evaluate(() => JSON.stringify(localStorage) + JSON.stringify(sessionStorage))
+    expect(stored).not.toContain('AIzaSyINVALID')
+    await page.getByRole('button', { name: /Demo Quick-Sim/ }).click()
+    await page.getByRole('menuitem', { name: /Simulate Clinical Dictation/ }).click()
+    await page.getByRole('button', { name: 'Generate structured draft' }).click()
+    await expect(page.getByText('Gemini audit not available')).toBeVisible({ timeout: 60_000 })
+    const banner = page.getByRole('alert').filter({ hasText: 'CRITICAL SAFETY WARNING' })
+    await expect(banner).toContainText('Local Deterministic Safety Rule')
+    await expect(banner).not.toContainText('Google Gemini')
+    await expect(page.getByText(/AIzaSyINVALID/)).toHaveCount(0)
+  } finally {
+    await nav(page, 'AI Provider Settings')
+    await page.getByRole('button', { name: 'Clear session credentials' }).click()
+  }
+})

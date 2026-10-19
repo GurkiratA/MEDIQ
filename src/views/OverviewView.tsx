@@ -51,7 +51,7 @@ export function OverviewView() {
         <StatTile label="Occupied rooms" value={occupied.length} icon={<BedDouble className="size-4" />} context={`of ${snap.rooms.length} rooms`} onClick={() => nav.navigate({ view: 'rooms', roomsTab: 'rooms', roomsFilter: 'occupied' })} />
       </div>
 
-      <div className="mt-4 grid items-start gap-4 xl:grid-cols-3">
+      <div className="mt-4 grid items-start gap-4 xl:grid-cols-3 [&>*]:min-w-0">
         <Card className="xl:col-span-2">
           <CardHeader title="AI provider status" icon={<BrainCircuit className="size-4" />} subtitle="What will run for the next generated note" actions={
             <button type="button" className="text-xs text-cyan hover:underline" onClick={() => nav.navigate({ view: 'ai' })}>
@@ -73,11 +73,11 @@ export function OverviewView() {
             </div>
             <div className="sm:col-span-3">
               {prov.apiReachable === false ? (
-                <Badge tone="warn" icon={<AlertTriangle className="size-3" />}>Local API unreachable — all AI features use labelled local fallbacks</Badge>
+                <Badge tone="warn" className="whitespace-normal" icon={<AlertTriangle className="size-3" />}>Local API unreachable — all AI features use labelled local fallbacks</Badge>
               ) : prov.fallbackActive || snap.settings.providerMode === 'local' ? (
-                <Badge tone="warn" icon={<AlertTriangle className="size-3" />}>Local fallback active — results will be labelled “Local deterministic”</Badge>
+                <Badge tone="warn" className="whitespace-normal" icon={<AlertTriangle className="size-3" />}>Local fallback active — results will be labelled “Local deterministic”</Badge>
               ) : (
-                <Badge tone="ok" icon={<ShieldCheck className="size-3" />}>Configured providers available</Badge>
+                <Badge tone="ok" className="whitespace-normal" icon={<ShieldCheck className="size-3" />}>Configured providers available</Badge>
               )}
               <span className="ml-2 text-xs text-ink-faint">Local safety rules always run in addition, as an independent baseline.</span>
             </div>
@@ -97,7 +97,7 @@ export function OverviewView() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0">
         <Card>
           <CardHeader title="Recent patient records" icon={<Users className="size-4" />} />
           <ul className="divide-y divide-line">

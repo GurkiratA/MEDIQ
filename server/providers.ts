@@ -97,7 +97,14 @@ function mapGeminiError(err: unknown, signal: AbortSignal): ProviderError {
   if (signal.aborted) return new ProviderError(`Gemini request timed out after ${timeoutMs()} ms.`, 'timeout')
   if (err instanceof ApiError) {
     if (err.status === 429) return new ProviderError('Gemini rate-limited the request (HTTP 429).', 'rate-limited', 429)
-    return new ProviderError(`Gemini returned HTTP ${err.status}: ${err.message.slice(0, 300)}`, 'http', err.status)
+    let detail = err.message
+    try {
+      const parsed = JSON.parse(err.message.slice(err.message.indexOf('{'))) as { error?: { message?: string } }
+      if (parsed.error?.message) detail = parsed.error.message
+    } catch {
+      /* not JSON — keep the raw message */
+    }
+    return new ProviderError(`Gemini returned HTTP ${err.status}: ${detail.slice(0, 300)}`, 'http', err.status)
   }
   return new ProviderError(`Gemini request failed: ${err instanceof Error ? err.message : String(err)}`, 'network')
 }
