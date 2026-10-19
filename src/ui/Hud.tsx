@@ -1,0 +1,481 @@
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { useStore, accentFor, type Phase } from '../store'
+import { Suggestions } from './Suggestions'
+import { BladeSweep, Blades } from './Blades'
+import { Effects } from './Effects'
+import { Pointer } from './Pointer'
+import { GestureGuide } from './GestureGuide'
+import { Mediq } from './Mediq'
+import { DropZones } from './DropZones'
+import { BACKEND, BRIDGE_HTTP_URL } from '../config'
+
+const statusText: Record<Phase, string> = {
+  offline: 'OFFLINE',
+  boot: 'INITIALISING',
+  dormant: 'STANDBY — SAY “HEY MEDIQ”',
+  waking: 'ONLINE',
+  listening: 'LISTENING',
+  thinking: 'PROCESSING',
+  tooling: 'ACCESSING SYSTEMS',
+  speaking: 'RESPONDING',
+}
+
+function Corner({ at }: { at: 'tl' | 'tr' | 'bl' | 'br' }) {
+  return <div className={`corner corner-${at}`} />
+}
+
+/** The user's own wall clock, ticking live — not a prop, not fetched, just
+ *  `new Date()` read once a second. Nothing about "what time is it" needs a
+ *  round trip. */
+function Clock() {
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  // 12-hour with AM/PM, not the 24-hour "military" clock — en-US rather than
+  // en-GB specifically for this, since en-GB renders the period as lowercase
+  // "pm" with no space, which reads as a typo at the size this is shown now.
+  const time = now.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  })
+  const date = now
+    .toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })
+    .toUpperCase()
+
+  return (
+    <div className="clock">
+      <span className="clock-date">{date}</span>
+      <span className="clock-time">{time}</span>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ status */
+
+type SysStats = {
+  cpu: number | null
+  ram: number | null
+  wifi: string | null
+  downMbps: number | null
+}
+
+/** The Network Information API — Chrome/Edge only, and always an estimate
+ *  rather than a measured throughput. That's still a real "internet speed" a
+ *  browser can read without a bandwidth test hammering the network on every
+ *  poll, which is the honest trade for a HUD readout. */
+function readDownlink(): number | null {
+  const conn = (navigator as unknown as { connection?: { downlink?: number } })
+    .connection
+  return typeof conn?.downlink === 'number' ? conn.downlink : null
+}
+
+const SYS_POLL_MS = 4000
+
+/** CPU / RAM / Wi-Fi / link speed, polled from the bridge — the browser has no
+ *  API for any of these, so this is the one HUD readout that only works with
+ *  the bridge backend running. Silently blank without it, same as SYSTEMS. */
+function SystemStatus() {
+  const [stats, setStats] = useState<SysStats>({
+    cpu: null, ram: null, wifi: null, downMbps: readDownlink(),
+  })
+
+  useEffect(() => {
+    let stopped = false
+    const poll = async () => {
+      let cpu: number | null = null
+      let ram: number | null = null
+      let wifi: string | null = null
+      if (BACKEND === 'bridge') {
+        try {
+          const res = await fetch(`${BRIDGE_HTTP_URL}/sysinfo`, {
+            signal: AbortSignal.timeout(3000),
+          })
+          if (res.ok) {
+            const j = (await res.json()) as {
+              cpuPercent?: number
+              ramPercent?: number
+              wifiSSID?: string | null
+            }
+            cpu = typeof j.cpuPercent === 'number' ? j.cpuPercent : null
+            ram = typeof j.ramPercent === 'number' ? j.ramPercent : null
+            wifi = typeof j.wifiSSID === 'string' ? j.wifiSSID : null
+          }
+        } catch {
+          // Bridge down or slow this tick — leave the readout blank rather
+          // than showing a number that's stopped being true.
+        }
+      }
+      if (!stopped) setStats({ cpu, ram, wifi, downMbps: readDownlink() })
+    }
+    void poll()
+    const id = setInterval(poll, SYS_POLL_MS)
+    return () => {
+      stopped = true
+      clearInterval(id)
+    }
+  }, [])
+
+  return (
+    <>
+      <div className="rail-title rail-gap">STATUS</div>
+      <div className="rail-item mono">
+        <span className="tick" />
+        CPU {stats.cpu === null ? '—' : `${stats.cpu}%`}
+      </div>
+      <div className="rail-item mono">
+        <span className="tick" />
+        RAM {stats.ram === null ? '—' : `${stats.ram}%`}
+      </div>
+      <div className="rail-item mono">
+        <span className="tick" />
+        NET {stats.downMbps === null ? '—' : `${stats.downMbps.toFixed(1)} MBPS`}
+      </div>
+      <div className="rail-item mono">
+        <span className="tick" />
+        WIFI {stats.wifi ?? '—'}
+      </div>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ decode */
+
+/**
+ * The glyphs the ghost is drawn from. Uppercase, digits and rules only: the
+ * point is that the unresolved text reads as *machine*, so lowercase letters
+ * and anything with a descender are left out — they look like badly rendered
+ * words rather than an unfinished decode.
+ */
+const GLYPHS = '/\\|<>[]{}=+*#%&$0123456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+
+/** Characters of noise shown ahead of the resolved text. */
+const GHOST = 22
+/** Repaint interval for the scramble. ~24fps is plenty for glyph noise. */
+const FRAME_MS = 42
+/** Floor on the resolve rate, characters per second. */
+const MIN_RATE = 110
+/** The frontier is never allowed to trail the streamed text by longer. */
+const MAX_LAG_MS = 420
+
+function scramble(s: string, seed: number) {
+  let out = ''
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    // Whitespace is left alone so word shapes and line breaks hold still while
+    // the glyphs underneath churn.
+    if (c === ' ' || c === '\n' || c === '\t') {
+      out += c
+      continue
+    }
+    out += GLYPHS[(seed * 7919 + i * 104729 + c.charCodeAt(0)) % GLYPHS.length]
+  }
+  return out
+}
+
+/**
+ * MEDIQ's lines, arriving the way a computer would produce them.
+ *
+ * The hard part is not the effect, it is that the text underneath is *live*.
+ * The store appends a token at a time, so this component re-renders dozens of
+ * times a second with a slightly longer string, and the naive implementation —
+ * scramble the whole thing, resolve it over N milliseconds — restarts the
+ * animation on every token and never finishes decoding anything.
+ *
+ * So the frontier is a ref and only ever moves forward. Everything behind it
+ * has settled and is plain text that will never animate again; a short window
+ * ahead of it is noise; the rest is present in the DOM but invisible, which
+ * keeps the line wrapping identical to the finished paragraph and means the
+ * accessibility tree always holds the real sentence. The rate scales with how
+ * far behind the frontier has fallen, so a single token drips and a 300
+ * character burst clears inside MAX_LAG_MS — the decode must never be the
+ * reason the transcript trails the voice.
+ *
+ * The rAF loop repaints on a 42ms gate rather than every frame, and stops dead
+ * the moment the frontier catches up.
+ */
+function DecodeText({ text }: { text: string }) {
+  const reduced = useReducedMotion()
+  const settled = useRef(0)
+  const raf = useRef(0)
+  const latest = useRef(text)
+  const [tick, bump] = useState(0)
+
+  useEffect(() => {
+    // The running loop reads the length through this ref rather than through
+    // its own closure, so a token landing mid-sweep simply extends the target
+    // instead of leaving the loop chasing a length that is already stale.
+    latest.current = text
+
+    if (reduced) {
+      settled.current = text.length
+      return
+    }
+    if (raf.current || settled.current >= text.length) return
+
+    let prev = performance.now()
+    let painted = 0
+
+    const step = (now: number) => {
+      // Clamped so a backgrounded tab does not resolve the whole answer in one
+      // enormous frame the moment it comes back.
+      const dt = Math.min(now - prev, 120) / 1000
+      prev = now
+
+      const target = latest.current.length
+      const rate = Math.max(MIN_RATE, (target - settled.current) / (MAX_LAG_MS / 1000))
+      settled.current = Math.min(target, settled.current + rate * dt)
+
+      if (now - painted >= FRAME_MS) {
+        painted = now
+        bump((n) => n + 1)
+      }
+
+      if (settled.current < latest.current.length) {
+        raf.current = requestAnimationFrame(step)
+      } else {
+        raf.current = 0
+        bump((n) => n + 1)
+      }
+    }
+    raf.current = requestAnimationFrame(step)
+  }, [text, reduced])
+
+  useEffect(
+    () => () => {
+      if (raf.current) cancelAnimationFrame(raf.current)
+      raf.current = 0
+    },
+    [],
+  )
+
+  const n = Math.floor(settled.current)
+  if (reduced || n >= text.length) return <>{text}</>
+
+  return (
+    <>
+      {text.slice(0, n)}
+      <span className="decode-ghost">{scramble(text.slice(n, n + GHOST), tick)}</span>
+      <span className="decode-veil">{text.slice(n + GHOST)}</span>
+    </>
+  )
+}
+
+/* --------------------------------------------------------------------- hud */
+
+export function Hud() {
+  const phase = useStore((s) => s.phase)
+  const caption = useStore((s) => s.caption)
+  const turns = useStore((s) => s.turns)
+  const activeTool = useStore((s) => s.activeTool)
+  const connected = useStore((s) => s.connected)
+  const error = useStore((s) => s.error)
+  const level = useStore((s) => s.level)
+  const voice = useStore((s) => s.voice)
+  const bootNote = useStore((s) => s.bootNote)
+  const gestures = useStore((s) => s.gestures)
+  const looking = useStore((s) => s.looking)
+  const screenStatus = useStore((s) => s.screenStatus)
+  const voiceEnrollStatus = useStore((s) => s.voiceEnrollStatus)
+  const ui = useStore((s) => s.ui)
+
+  // accentFor folds MEDIQ's overrides in over the phase colour, so one
+  // variable on the root carries a theme change into every .hud-* rule without
+  // a single component knowing a theme exists.
+  const colour = accentFor(phase, ui)
+
+  useEffect(() => {
+    // The ground has to be set on the document, not painted here: the HUD sits
+    // above the 3D scene, so a background drawn inside it would cover the
+    // reactor rather than sit behind it. --bg is what html, body, #root and the
+    // boot screen all pin themselves to.
+    const root = document.documentElement
+    if (ui.background) root.style.setProperty('--bg', ui.background)
+    else root.style.removeProperty('--bg')
+  }, [ui.background])
+
+  return (
+    <div className="hud" style={{ ['--accent' as string]: colour }}>
+      {/* First in the tree on purpose. Everything after it is positioned with
+          `z-index: auto`, so paint order is document order and the sweep stays
+          behind the transcript and the panels without a z-index war. */}
+      <BladeSweep />
+
+      <Corner at="tl" />
+      <Corner at="tr" />
+      <Corner at="bl" />
+      <Corner at="br" />
+
+      <header className="hud-top">
+        {ui.chrome.brand && (
+          <div className="brand">
+            <span className="brand-mark">M.E.D.I.Q.</span>
+            <span className="brand-sub">Medical Intelligence &amp; Clinical Assistant</span>
+          </div>
+        )}
+
+        <div className="status-wrap">
+          <div className="status">
+            <span className="dot" />
+            <span className="status-text">
+              {/* bootNote is the voice-model download readout. It is only ever
+                  the right thing to show during boot — as a general fallback a
+                  note that never got cleared (a stuck 'voice 97%') sits over
+                  LISTENING and PROCESSING for the rest of the session. */}
+              {phase === 'boot' && bootNote ? bootNote : statusText[phase]}
+            </span>
+          </div>
+          <Clock />
+        </div>
+      </header>
+
+      {/* Left rail: which integrations are live */}
+      {ui.chrome.systems && (
+        <aside className="rail rail-left">
+          <div className="rail-title">SYSTEMS</div>
+          {connected.length === 0 && <div className="rail-item dim">none linked</div>}
+          {connected.map((c) => (
+            <div key={c} className="rail-item">
+              <span className="tick" />
+              {c}
+            </div>
+          ))}
+          <div className="rail-item">
+            <span className="tick" />
+            Web
+          </div>
+          <SystemStatus />
+        </aside>
+      )}
+
+      {/* Right rail: live telemetry, mostly for flavour */}
+      <aside className="rail rail-right">
+        <div className="rail-title">SIGNAL</div>
+        <div className="meter">
+          <div className="meter-fill" style={{ height: `${level * 100}%` }} />
+        </div>
+        <div className="rail-item mono">{(level * 100).toFixed(0).padStart(3, '0')}%</div>
+      </aside>
+
+      <AnimatePresence>
+        {activeTool && ui.chrome.toolBadge && (
+          <motion.div
+            className="tool-badge"
+            // Anchored to the TOP of the frame, not the middle. The old home was
+            // viewport-centre plus a fixed drop, which on a tall or square
+            // window landed the headline straight on top of the bottom
+            // transcript — two elements pinned to different edges of the screen
+            // were always going to meet somewhere. Up here it sits in its own
+            // band with the rest of the status chrome and can never collide with
+            // the log. Framer owns `transform` on an animated element, so the
+            // centring (x: -50%) lives in these props, not the stylesheet.
+            initial={{ opacity: 0, x: '-50%', y: -8, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, x: '-50%', y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, x: '-50%', y: -8, filter: 'blur(6px)' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+          >
+            <span className="tool-kicker">
+              <span className="spinner" />
+              accessing
+            </span>
+            <span className="tool-name">{activeTool.replace(/[_-]/g, ' ')}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Conversation log — last few turns, fading upward */}
+      {ui.chrome.transcript && (
+        <div className="log">
+          <AnimatePresence initial={false}>
+            {turns.slice(-4).map((t) => (
+              <motion.div
+                key={t.id}
+                className={`log-line log-${t.role}`}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              >
+                <span className="log-who">{t.role === 'user' ? 'YOU' : 'MEDIQ'}</span>
+                {/* Only his half decodes. What the user said was never
+                    transmitted from anywhere — dressing it up as machine
+                    output would be a lie about where the words came from. */}
+                <span className="log-text">
+                  {t.role === 'mediq' ? <DecodeText text={t.text} /> : t.text}
+                </span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {caption && (
+          <motion.div
+            className="caption"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {caption}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* The one surface. Panels used to sit alongside this as a second place
+          for things to appear, which meant two places to look and a decision
+          the model had to make on grounds it could not know. Everything renders
+          here now; Panels.tsx is unmounted rather than deleted so the design
+          system it documents stays findable. */}
+      {/* The clinical dashboard, under the blades so an image or X-ray opened
+          from it lands on top, and under the hand pointer so gestures reach it. */}
+      {BACKEND === 'bridge' && <Mediq />}
+
+      <Blades />
+
+      <DropZones />
+
+      {ui.chrome.suggestions && <Suggestions />}
+
+      {error && <div className="error">{error}</div>}
+
+      <footer className="hud-bottom">
+        <span className="hint">
+          say <b>“hey mediq”</b> · <kbd>Space</kbd> to talk · <kbd>M</kbd> dashboard · <kbd>G</kbd> hands
+          {voice && (
+            <>
+              {' · '}
+              <kbd>V</kbd> voice: {voice.replace(/\(.*?\)/g, '').trim()}
+            </>
+          )}
+        </span>
+      </footer>
+
+      {/* Last, so a flash or a tear reads as being on the glass rather than
+          underneath the chrome. It is pointer-events: none and unmounts the
+          instant it finishes. */}
+      <Effects />
+
+      {/* Above even the effects: the reticle shows where a press will land, and
+          a press that lands under a flourish is a press you cannot aim. */}
+      <Pointer />
+      {(gestures || looking) && (
+        <div className="hands-live">
+          {looking ? `LOOKING — ${looking.toUpperCase()}` : 'CAMERA ON · G TO STOP'}
+        </div>
+      )}
+      {/* Chrome's own "sharing your screen" browser chrome is the hardware
+          light here — this is the on-screen half of that same transparency,
+          same job the camera banner above does while looking is live. */}
+      {screenStatus && <div className="hands-live">{screenStatus.toUpperCase()}</div>}
+      {voiceEnrollStatus && <div className="hands-live">{voiceEnrollStatus.toUpperCase()}</div>}
+      <GestureGuide live={gestures} />
+    </div>
+  )
+}
