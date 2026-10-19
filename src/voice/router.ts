@@ -5,6 +5,7 @@
  */
 import type { NavState } from '../state/NavContext'
 import { describeCommand, requiresPatient, type Command } from './commands'
+import { REPORT_TITLE, type ReportKind } from '../reports/reportKinds'
 
 export interface RouterDeps {
   activePatientId: string | null
@@ -17,7 +18,19 @@ export interface RouterDeps {
   latestSummary: (patientId: string) => string | null
   speak: (text: string) => void
   stopListening: () => void
+  /** Floating report panels (optional so non-UI callers can omit them). */
+  reports?: {
+    open: (kind: ReportKind, patientId: string) => void
+    hasOpen: () => boolean
+    closeTop: () => boolean
+    closeAll: () => void
+    scaleTop: (factor: number) => boolean
+    scrollTop: (dir: 'up' | 'down') => boolean
+  }
 }
+
+/** Scale applied per "larger"/"smaller" command. */
+export const RESIZE_STEP = 1.2
 
 export interface RouteResult {
   executed: boolean
@@ -94,6 +107,28 @@ export function routeCommand(cmd: Command, d: RouterDeps): RouteResult {
     case 'help':
       d.navigate({ view: 'voice' })
       return ok('Available commands are listed in the Voice Assistant.', 'The available commands are on screen.')
+    case 'open-report': {
+      if (!d.reports) return { executed: false, message: 'Reports are not available here.', spoken: null }
+      if (!d.patientExists(pid!)) return { executed: false, message: `Patient ${pid} was not found in the synthetic database.`, spoken: 'Patient not found.' }
+      d.reports.open(cmd.report, pid!)
+      return ok(`${REPORT_TITLE[cmd.report]} opened for patient ${pid}.`, `${REPORT_TITLE[cmd.report]}, patient ${pid}.`)
+    }
+    case 'close-report': {
+      if (!d.reports?.hasOpen()) return { executed: false, message: 'No report is open.', spoken: 'No report is open.' }
+      if (cmd.all) d.reports.closeAll()
+      else d.reports.closeTop()
+      return ok(cmd.all ? 'Closed all reports.' : 'Closed the report.', 'Closed.')
+    }
+    case 'resize-report': {
+      if (!d.reports?.hasOpen()) return { executed: false, message: 'No report is open to resize.', spoken: 'No report is open.' }
+      d.reports.scaleTop(cmd.direction === 'larger' ? RESIZE_STEP : 1 / RESIZE_STEP)
+      return ok(cmd.direction === 'larger' ? 'Report enlarged.' : 'Report reduced.', null)
+    }
+    case 'scroll-report': {
+      if (!d.reports?.hasOpen()) return { executed: false, message: 'No report is open to scroll.', spoken: 'No report is open.' }
+      d.reports.scrollTop(cmd.direction)
+      return ok(`Scrolled ${cmd.direction}.`, null)
+    }
     case 'unknown':
       return { executed: false, message: `Command not recognised: “${cmd.text.slice(0, 80)}”. Say “help” for the list.`, spoken: 'Sorry, I did not recognise that command.' }
   }

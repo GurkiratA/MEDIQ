@@ -76,6 +76,8 @@ export interface EngineOptions {
   smoothing: number
   /** The preview is mirrored, so user-perspective direction is the inverse of image x. */
   mirrored: boolean
+  /** Swipes are off when hands drive an on-screen pointer: fast pointer travel would read as a swipe. */
+  enableSwipe: boolean
 }
 
 export const DEFAULT_ENGINE: EngineOptions = {
@@ -86,6 +88,7 @@ export const DEFAULT_ENGINE: EngineOptions = {
   swipeWindowMs: 450,
   smoothing: 0.55,
   mirrored: true,
+  enableSwipe: true,
 }
 
 const POSE_EVENT: Partial<Record<Pose, GestureEvent['type']>> = { 'open-palm': 'pause', pinch: 'pinch', 'thumbs-up': 'thumbs-up' }
@@ -145,7 +148,7 @@ export class GestureEngine {
     while (this.track.length && t - this.track[0].t > this.o.swipeWindowMs) this.track.shift()
 
     // Swipe: fast, mostly-horizontal travel within the window.
-    if (this.track.length >= 3 && this.cooled('swipe', t)) {
+    if (this.o.enableSwipe && this.track.length >= 3 && this.cooled('swipe', t)) {
       const first = this.track[0]
       const dx = this.smooth.x - first.x
       const dy = this.smooth.y - first.y

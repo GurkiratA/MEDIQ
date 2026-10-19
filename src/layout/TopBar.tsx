@@ -1,24 +1,5 @@
 import { clsx } from 'clsx'
-import {
-  BrainCircuit,
-  Camera,
-  CameraOff,
-  ChevronDown,
-  FlaskConical,
-  Loader2,
-  Menu,
-  Mic,
-  MicOff,
-  Pause,
-  Play,
-  Search,
-  ShieldAlert,
-  ShieldCheck,
-  ShieldQuestion,
-  Square,
-  UserRound,
-  Volume2,
-} from 'lucide-react'
+import { BrainCircuit, Camera, CameraOff, ChevronDown, FlaskConical, Menu, MoreHorizontal, Pause, Play, RotateCcw, Search, ShieldAlert, ShieldCheck, ShieldQuestion, Square, UserRound, Volume2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ProviderMode } from '../../shared/aiSchemas'
 import { Badge, type Tone } from '../components/ui'
@@ -32,14 +13,24 @@ import { useVoice, type SimScenario, type VoiceStatus } from '../voice/VoiceCont
 
 export const VOICE_STATUS: Record<VoiceStatus, { label: string; tone: Tone }> = {
   'not-enrolled': { label: 'Not Enrolled', tone: 'neutral' },
-  ready: { label: 'Enrolled · verify per command', tone: 'teal' },
-  'loading-model': { label: 'Loading voice model', tone: 'cyan' },
+  ready: { label: 'Ready', tone: 'teal' },
+  'loading-model': { label: 'Loading model', tone: 'cyan' },
   listening: { label: 'Listening', tone: 'cyan' },
   'verification-pending': { label: 'Verification Pending', tone: 'warn' },
   verified: { label: 'Verified', tone: 'ok' },
   'unknown-speaker': { label: 'Unknown Speaker', tone: 'danger' },
   'access-denied': { label: 'Access Denied', tone: 'danger' },
   unavailable: { label: 'Verification Unavailable', tone: 'warn' },
+}
+
+const TONE_DOT: Record<Tone, string> = {
+  neutral: 'bg-ink-faint',
+  teal: 'bg-teal-bright',
+  cyan: 'bg-cyan',
+  ok: 'bg-ok',
+  warn: 'bg-warn',
+  danger: 'bg-danger',
+  sim: 'bg-sim',
 }
 
 const MODES: { id: ProviderMode; label: string }[] = [
@@ -89,15 +80,15 @@ function PatientSearch() {
     setOpen(false)
   }
   return (
-    <div ref={box} className="relative w-full max-w-xs">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+    <div ref={box} className="relative w-full max-w-[260px]">
+      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
       <input
         type="search"
         role="combobox"
         aria-expanded={open && q.length > 0}
         aria-controls="patient-search-results"
         aria-label="Search synthetic patients by ID or name"
-        placeholder="Search patients…"
+        placeholder="Find patient"
         value={q}
         onChange={(e) => {
           setQ(e.target.value)
@@ -110,18 +101,16 @@ function PatientSearch() {
           if (e.key === 'ArrowUp') setIdx((i) => Math.max(i - 1, 0))
           if (e.key === 'Enter' && results[idx]) go(results[idx].id)
         }}
-        className="input h-9 pl-8"
+        className="input h-9 rounded-full pl-9"
       />
       {open && q.trim() && (
-        <ul id="patient-search-results" role="listbox" className="card absolute left-0 right-0 top-11 z-50 max-h-72 overflow-y-auto py-1">
-          {results.length === 0 && <li className="px-3 py-2 text-sm text-ink-muted">No synthetic patients match “{q}”.</li>}
+        <ul id="patient-search-results" role="listbox" className="glass absolute left-0 right-0 top-11 z-50 max-h-72 overflow-y-auto rounded-xl py-1">
+          {results.length === 0 && <li className="px-3 py-2 text-sm text-ink-muted">No match for “{q}”.</li>}
           {results.map((p, i) => (
             <li key={p.id} role="option" aria-selected={i === idx}>
-              <button type="button" onClick={() => go(p.id)} className={clsx('flex w-full items-center justify-between px-3 py-2 text-left text-sm', i === idx ? 'bg-surface-3' : 'hover:bg-surface-3')}>
-                <span>
-                  <span className="font-mono text-cyan">{p.id}</span> · {p.fullName}
-                </span>
-                <Badge tone="sim">Synthetic</Badge>
+              <button type="button" onClick={() => go(p.id)} className={clsx('flex w-full items-center gap-2 px-3 py-2 text-left text-sm', i === idx ? 'bg-surface-3' : 'hover:bg-surface-3')}>
+                <span className="font-mono text-cyan">{p.id}</span>
+                <span className="truncate">{p.fullName}</span>
               </button>
             </li>
           ))}
@@ -131,7 +120,7 @@ function PatientSearch() {
   )
 }
 
-function Dropdown({ label, icon, children, tone = 'neutral' }: { label: string; icon: React.ReactNode; children: (close: () => void) => React.ReactNode; tone?: 'neutral' | 'sim' }) {
+function Dropdown({ label, icon, children, tone = 'neutral', showLabel }: { label: string; icon: React.ReactNode; children: (close: () => void) => React.ReactNode; tone?: 'neutral' | 'sim'; showLabel?: boolean }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useOutside(ref, () => setOpen(false), open)
@@ -141,18 +130,16 @@ function Dropdown({ label, icon, children, tone = 'neutral' }: { label: string; 
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={label}
         onClick={() => setOpen((o) => !o)}
-        className={clsx(
-          'inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium',
-          tone === 'sim' ? 'border-sim/40 bg-sim/10 text-sim hover:bg-sim/20' : 'border-line-strong bg-surface-2 text-ink-muted hover:text-ink',
-        )}
+        className={clsx('pill', tone === 'sim' && 'border-sim/40 bg-sim/10 text-sim hover:text-sim')}
       >
         {icon}
-        <span className="hidden xl:inline">{label}</span>
-        <ChevronDown className="size-3.5" />
+        {showLabel && <span className="hidden xl:inline">{label}</span>}
+        <ChevronDown className="size-3" />
       </button>
       {open && (
-        <div role="menu" className="card absolute right-0 top-11 z-50 w-72 p-1.5">
+        <div role="menu" className="glass absolute right-0 top-11 z-50 w-72 rounded-xl p-1.5">
           {children(() => setOpen(false))}
         </div>
       )}
@@ -160,7 +147,7 @@ function Dropdown({ label, icon, children, tone = 'neutral' }: { label: string; 
   )
 }
 
-export function TopBar({ onMenu }: { onMenu: () => void }) {
+export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplayIntro?: () => void }) {
   const { saveSettings } = useData()
   const snap = useSnap()
   const voice = useVoice()
@@ -170,6 +157,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const toast = useToast()
   const speech = useSpeechState()
   const owner = snap.doctors.find((d) => d.role === 'Owner')
+  const focus = nav.patientId ? snap.patients.find((p) => p.id === nav.patientId) : null
 
   const vs = voice.enrolling ? { label: 'Enrolling', tone: 'cyan' as Tone } : VOICE_STATUS[voice.status]
   const listening = voice.status === 'listening'
@@ -188,77 +176,64 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
     return () => window.removeEventListener('keydown', h)
   }, [listening, voice])
 
+  const camOn = gestures.status !== 'off' && gestures.status !== 'error'
   const camTone: Tone = gestures.status === 'tracking' ? 'ok' : gestures.status === 'error' ? 'danger' : gestures.status === 'off' ? 'neutral' : 'cyan'
+  const camLabel = gestures.status === 'off' ? 'Hands off' : gestures.status === 'error' ? 'Camera error' : gestures.status === 'starting' ? 'Starting…' : gestures.status === 'tracking' ? 'Hand tracked' : 'No hand'
+  const local = prov.fallbackActive || snap.settings.providerMode === 'local' || prov.apiReachable === false
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-canvas/90 backdrop-blur">
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/80 backdrop-blur-xl">
+      <div className="flex h-[60px] items-center gap-3 px-3 sm:px-5">
         <button type="button" onClick={onMenu} className="rounded-md p-2 text-ink-muted hover:bg-surface-3 lg:hidden" aria-label="Open navigation">
           <Menu className="size-5" />
         </button>
-        <button type="button" onClick={() => nav.navigate({ view: 'overview' })} className="flex items-center gap-2 pr-2" aria-label="MEDIQ home">
-          <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-teal to-cyan text-sm font-black text-white">M</span>
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="text-sm font-bold tracking-[0.18em] text-ink">MEDIQ</span>
-            <span className="text-[10px] text-ink-faint">Clinical Co-Pilot</span>
-          </span>
+        <button type="button" onClick={() => nav.navigate({ view: 'overview' })} className="flex items-center gap-2.5" aria-label="MEDIQ home">
+          <span className="relative grid size-8 place-items-center rounded-xl border border-cyan/40 bg-cyan/10 text-[13px] font-bold text-cyan-soft shadow-[0_0_18px_-4px] shadow-cyan/60">M</span>
+          <span className="hidden text-[15px] font-semibold tracking-[0.32em] text-ink sm:inline">MEDIQ</span>
         </button>
-        <Badge tone="sim" className="hidden uppercase sm:inline-flex">
-          Synthetic data
+        <Badge tone="sim" className="hidden uppercase tracking-wide md:inline-flex">
+          Synthetic
         </Badge>
-        <span className="hidden items-center gap-1.5 text-[11px] text-ink-muted md:flex" title={prov.apiReachable ? 'Local database and API online' : 'Local API unreachable — local-only mode'}>
-          <span className={clsx('size-2 rounded-full', prov.apiReachable === false ? 'bg-warn' : 'bg-ok')} />
-          {prov.apiReachable === false ? 'Local-only' : 'Online'}
-        </span>
 
-        <div className="order-last w-full md:order-none md:ml-2 md:w-auto md:flex-1">
-          <PatientSearch />
-        </div>
+        {focus && (
+          <span className="hidden items-center gap-1.5 rounded-full border border-teal/40 bg-teal/10 py-1 pl-3 pr-1 text-xs md:inline-flex">
+            <button type="button" className="flex items-center gap-1.5" onClick={() => nav.navigate({ view: 'patients', patientId: focus.id })} aria-label={`Active patient ${focus.id} ${focus.fullName}`}>
+              <span className="font-mono text-teal-bright">{focus.id}</span>
+              <span className="max-w-[10rem] truncate text-ink">{focus.fullName}</span>
+            </button>
+            <button type="button" className="rounded-full p-0.5 text-ink-faint hover:text-ink" onClick={() => nav.navigate({ view: nav.view === 'patients' ? 'overview' : nav.view, patientId: null })} aria-label="Clear active patient">
+              <X className="size-3.5" />
+            </button>
+          </span>
+        )}
 
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          {/* Push-to-talk */}
-          <button
-            type="button"
-            onClick={() => (listening ? voice.stopPushToTalk() : void voice.startPushToTalk())}
-            disabled={voice.status === 'verification-pending' || voice.status === 'loading-model'}
-            aria-pressed={listening}
-            aria-label={listening ? 'Stop listening (Alt+V)' : 'Push to talk — voice command with speaker verification (Alt+V)'}
-            title="Push to talk (Alt+V)"
-            className={clsx(
-              'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors disabled:opacity-60',
-              listening ? 'animate-pulse-ring border-cyan bg-cyan/20 text-cyan-soft' : 'border-teal/50 bg-teal/15 text-teal-bright hover:bg-teal/25',
-            )}
-          >
-            {voice.status === 'verification-pending' || voice.status === 'loading-model' ? <Loader2 className="size-4 animate-spin" /> : listening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-            <span className="hidden sm:inline">{listening ? 'Stop' : 'Talk'}</span>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="hidden md:block">
+            <PatientSearch />
+          </div>
+
+          <button type="button" onClick={() => nav.navigate({ view: 'voice' })} className="pill" title={voice.statusDetail ?? vs.label} aria-label={`Voice verification status: ${vs.label}`}>
+            <VoiceIcon className="size-3.5" />
+            <span className={clsx('dot', TONE_DOT[vs.tone])} />
+            <span className="hidden lg:inline">{vs.label}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => nav.navigate({ view: 'voice' })}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-2 text-xs"
-            title={voice.statusDetail ?? vs.label}
-            aria-label={`Voice verification status: ${vs.label}`}
+            onClick={() => (camOn ? gestures.disable() : void gestures.enable())}
+            className={clsx('pill', camOn && 'border-cyan/40 text-cyan-soft')}
+            aria-label={camOn ? 'Disable camera gesture control' : 'Enable camera gesture control'}
+            aria-pressed={camOn}
+            title={gestures.error ?? 'Hand control (camera processed locally)'}
           >
-            <VoiceIcon className="size-4 text-ink-muted" />
-            <Badge tone={vs.tone}>{vs.label}</Badge>
+            {camOn ? <Camera className="size-3.5" /> : <CameraOff className="size-3.5" />}
+            <span className={clsx('dot', TONE_DOT[camTone])} />
+            <span className="hidden lg:inline">{camLabel}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => (gestures.status === 'off' || gestures.status === 'error' ? void gestures.enable() : gestures.disable())}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-2 text-xs"
-            aria-label={gestures.status === 'off' ? 'Enable camera gesture control' : 'Disable camera gesture control'}
-            title={gestures.error ?? 'Camera & gesture control (processed locally)'}
-          >
-            {gestures.status === 'off' || gestures.status === 'error' ? <CameraOff className="size-4 text-ink-muted" /> : <Camera className="size-4 text-cyan" />}
-            <Badge tone={camTone}>
-              {gestures.status === 'off' ? 'Gestures off' : gestures.status === 'error' ? 'Camera error' : gestures.status === 'starting' ? 'Starting…' : gestures.status === 'tracking' ? 'Hand tracked' : 'No hand'}
-            </Badge>
-          </button>
-
-          <label className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-2 text-xs" title="AI provider mode">
-            <BrainCircuit className="size-4 text-ink-muted" />
+          <label className="pill cursor-pointer" title="AI provider mode">
+            <BrainCircuit className="size-3.5" />
+            <span className={clsx('dot', local ? 'bg-warn' : 'bg-ok')} />
             <span className="sr-only">AI provider</span>
             <select
               value={snap.settings.providerMode}
@@ -266,7 +241,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
                 await saveSettings({ ...snap.settings, providerMode: e.target.value as ProviderMode })
                 toast({ tone: 'info', title: 'AI provider mode changed', body: MODES.find((m) => m.id === e.target.value)?.label })
               }}
-              className="bg-transparent text-xs text-ink focus:outline-none"
+              className="hidden max-w-[8.5rem] bg-transparent text-xs text-ink focus:outline-none xl:block"
             >
               {MODES.map((m) => (
                 <option key={m.id} value={m.id} className="bg-surface">
@@ -274,14 +249,13 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
                 </option>
               ))}
             </select>
-            {prov.fallbackActive || snap.settings.providerMode === 'local' ? <Badge tone="warn">Local fallback</Badge> : <Badge tone="ok">Live</Badge>}
           </label>
 
-          <Dropdown label="Demo Quick-Sim" icon={<FlaskConical className="size-4" />} tone="sim">
+          <Dropdown label="Demo Quick-Sim" icon={<FlaskConical className="size-3.5" />} tone="sim" showLabel>
             {(close) => (
               <>
                 <p className="px-2 pb-1.5 pt-1 text-[11px] leading-snug text-ink-muted">
-                  <span className="font-semibold text-sim">SIMULATION</span> — scripted demonstrations, not live biometric tests. They never change enrollment or grant privileges.
+                  <span className="font-semibold text-sim">SIMULATION</span> — scripted, not live biometrics. Never changes enrollment or privileges.
                 </p>
                 {SIMS.map((s) => (
                   <button
@@ -303,42 +277,38 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
             )}
           </Dropdown>
 
-          {speech.speaking ? (
-            <span className="inline-flex h-9 items-center gap-1 rounded-lg border border-cyan/40 bg-cyan/10 px-1.5 text-xs text-cyan-soft">
-              <Volume2 className="size-4" />
+          {speech.speaking && (
+            <span className="pill gap-0.5 border-cyan/40 text-cyan-soft">
+              <Volume2 className="size-3.5" />
               <button type="button" onClick={() => (speech.paused ? resumeSpeech() : pauseSpeech())} className="rounded p-1 hover:bg-cyan/20" aria-label={speech.paused ? 'Resume speech' : 'Pause speech'}>
-                {speech.paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+                {speech.paused ? <Play className="size-3" /> : <Pause className="size-3" />}
               </button>
               <button type="button" onClick={stopSpeech} className="rounded p-1 hover:bg-cyan/20" aria-label="Stop speech">
-                <Square className="size-3.5" />
+                <Square className="size-3" />
               </button>
             </span>
-          ) : (
-            <button type="button" onClick={() => nav.navigate({ view: 'voice', focus: 'tts' })} className="inline-flex h-9 items-center rounded-lg border border-line-strong bg-surface-2 px-2 text-ink-muted hover:text-ink" aria-label="Text-to-speech controls">
-              <Volume2 className="size-4" />
-            </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => nav.navigate({ view: 'doctors' })}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-2 text-xs text-ink-muted hover:text-ink"
-            aria-label="Clinician profile, users and authorization settings"
-          >
-            <UserRound className="size-4" />
-            <span className="hidden max-w-[9rem] truncate 2xl:inline">{owner ? owner.displayName : 'No owner enrolled'}</span>
-          </button>
+          <Dropdown label="More" icon={<MoreHorizontal className="size-4" />}>
+            {(close) => (
+              <>
+                <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-surface-3" onClick={() => (nav.navigate({ view: 'doctors' }), close())}>
+                  <UserRound className="size-4 text-ink-muted" />
+                  <span className="min-w-0 flex-1 truncate">{owner ? owner.displayName : 'No owner enrolled'}</span>
+                </button>
+                <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-surface-3" onClick={() => (nav.navigate({ view: 'voice', focus: 'tts' }), close())}>
+                  <Volume2 className="size-4 text-ink-muted" /> Speech output
+                </button>
+                {onReplayIntro && (
+                  <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-surface-3" onClick={() => (onReplayIntro(), close())}>
+                    <RotateCcw className="size-4 text-ink-muted" /> Replay intro
+                  </button>
+                )}
+              </>
+            )}
+          </Dropdown>
         </div>
       </div>
-      {(listening || voice.status === 'verification-pending') && (
-        <div className="flex items-center gap-3 border-t border-line bg-surface/80 px-4 py-1.5 text-xs" aria-live="polite">
-          <span className="h-1.5 w-24 overflow-hidden rounded bg-surface-3">
-            <span className="block h-full bg-cyan transition-[width]" style={{ width: `${Math.round(voice.level * 100)}%` }} />
-          </span>
-          <span className="text-ink-muted">{voice.statusDetail}</span>
-          <span className="truncate font-medium text-ink">{voice.transcript}</span>
-        </div>
-      )}
     </header>
   )
 }
