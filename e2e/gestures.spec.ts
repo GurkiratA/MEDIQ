@@ -94,6 +94,12 @@ test('pinch anywhere on the report body drags it; release drops it', async ({ pa
 
 test('two hands pinching resize the report about its centre', async ({ page }) => {
   await openSummary(page)
+  // Centre the panel first (mouse, by its header) so there is room to grow both ways.
+  const s = await box(page)
+  await page.mouse.move(s.x + 200, s.y + 22)
+  await page.mouse.down()
+  await page.mouse.move(s.x + 200 - (s.x + s.width / 2 - VW / 2), s.y + 22 + 40, { steps: 6 })
+  await page.mouse.up()
   const hands = new Hands(page)
   await hands.init()
   const b0 = await box(page)
@@ -108,8 +114,10 @@ test('two hands pinching resize the report about its centre', async ({ page }) =
   const big = await box(page)
   expect(big.width).toBeGreaterThan(b0.width * 1.2)
   expect(big.height).toBeGreaterThan(b0.height * 1.05)
-  // Centre preserved (within clamping): the panel did not drift with either hand.
-  expect(Math.abs(big.x + big.width / 2 - (b0.x + b0.width / 2))).toBeLessThan(60)
+  // Centre preserved: the panel did not drift with either hand, and stays on-screen.
+  expect(Math.abs(big.x + big.width / 2 - (b0.x + b0.width / 2))).toBeLessThan(20)
+  expect(big.x).toBeGreaterThanOrEqual(0)
+  expect(big.x + big.width).toBeLessThanOrEqual(VW)
 
   // Bring hands together → smaller.
   for (let i = 1; i <= 20; i++) await hands.hold([{ ...L, x: L.x - 120 + i * 14, pose: 'pinch' }, { ...R, x: R.x + 120 - i * 14, pose: 'pinch' }])

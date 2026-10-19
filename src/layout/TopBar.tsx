@@ -135,7 +135,7 @@ function Dropdown({ label, icon, children, tone = 'neutral', showLabel }: { labe
         className={clsx('pill', tone === 'sim' && 'border-sim/40 bg-sim/10 text-sim hover:text-sim')}
       >
         {icon}
-        {showLabel && <span className="hidden xl:inline">{label}</span>}
+        {showLabel && <span className="hidden 2xl:inline">{label}</span>}
         <ChevronDown className="size-3" />
       </button>
       {open && (
@@ -183,7 +183,7 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
 
   return (
     <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/80 backdrop-blur-xl">
-      <div className="flex h-[60px] items-center gap-3 px-3 sm:px-5">
+      <div className="flex h-[60px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
         <button type="button" onClick={onMenu} className="rounded-md p-2 text-ink-muted hover:bg-surface-3 lg:hidden" aria-label="Open navigation">
           <Menu className="size-5" />
         </button>
@@ -207,7 +207,7 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
           </span>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
           <div className="hidden md:block">
             <PatientSearch />
           </div>
@@ -215,7 +215,7 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
           <button type="button" onClick={() => nav.navigate({ view: 'voice' })} className="pill" title={voice.statusDetail ?? vs.label} aria-label={`Voice verification status: ${vs.label}`}>
             <VoiceIcon className="size-3.5" />
             <span className={clsx('dot', TONE_DOT[vs.tone])} />
-            <span className="hidden lg:inline">{vs.label}</span>
+            <span className="hidden xl:inline">{vs.label}</span>
           </button>
 
           <button
@@ -228,10 +228,10 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
           >
             {camOn ? <Camera className="size-3.5" /> : <CameraOff className="size-3.5" />}
             <span className={clsx('dot', TONE_DOT[camTone])} />
-            <span className="hidden lg:inline">{camLabel}</span>
+            <span className="hidden xl:inline">{camLabel}</span>
           </button>
 
-          <label className="pill cursor-pointer" title="AI provider mode">
+          <label className="pill hidden cursor-pointer md:inline-flex" title="AI provider mode">
             <BrainCircuit className="size-3.5" />
             <span className={clsx('dot', local ? 'bg-warn' : 'bg-ok')} />
             <span className="sr-only">AI provider</span>
@@ -241,7 +241,7 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
                 await saveSettings({ ...snap.settings, providerMode: e.target.value as ProviderMode })
                 toast({ tone: 'info', title: 'AI provider mode changed', body: MODES.find((m) => m.id === e.target.value)?.label })
               }}
-              className="hidden max-w-[8.5rem] bg-transparent text-xs text-ink focus:outline-none xl:block"
+              className="hidden max-w-[8.5rem] bg-transparent text-xs text-ink focus:outline-none 2xl:block"
             >
               {MODES.map((m) => (
                 <option key={m.id} value={m.id} className="bg-surface">
@@ -251,31 +251,33 @@ export function TopBar({ onMenu, onReplayIntro }: { onMenu: () => void; onReplay
             </select>
           </label>
 
-          <Dropdown label="Demo Quick-Sim" icon={<FlaskConical className="size-3.5" />} tone="sim" showLabel>
-            {(close) => (
-              <>
-                <p className="px-2 pb-1.5 pt-1 text-[11px] leading-snug text-ink-muted">
-                  <span className="font-semibold text-sim">SIMULATION</span> — scripted, not live biometrics. Never changes enrollment or privileges.
-                </p>
-                {SIMS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      voice.runSimulation(s.id)
-                      if (s.id === 'unknown' || s.id === 'revoked') nav.navigate({ view: 'voice' })
-                      close()
-                    }}
-                    className="flex w-full flex-col rounded-md px-2 py-1.5 text-left hover:bg-surface-3"
-                  >
-                    <span className="text-sm text-ink">{s.label}</span>
-                    <span className="text-[11px] text-ink-faint">{s.hint}</span>
-                  </button>
-                ))}
-              </>
-            )}
-          </Dropdown>
+          <div className="hidden sm:block">
+            <Dropdown label="Demo Quick-Sim" icon={<FlaskConical className="size-3.5" />} tone="sim" showLabel>
+              {(close) => (
+                <>
+                  <p className="px-2 pb-1.5 pt-1 text-[11px] leading-snug text-ink-muted">
+                    <span className="font-semibold text-sim">SIMULATION</span> — scripted, not live biometrics. Never changes enrollment or privileges.
+                  </p>
+                  {SIMS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        voice.runSimulation(s.id)
+                        if (s.id === 'unknown' || s.id === 'revoked') nav.navigate({ view: 'voice' })
+                        close()
+                      }}
+                      className="flex w-full flex-col rounded-md px-2 py-1.5 text-left hover:bg-surface-3"
+                    >
+                      <span className="text-sm text-ink">{s.label}</span>
+                      <span className="text-[11px] text-ink-faint">{s.hint}</span>
+                    </button>
+                  ))}
+                </>
+              )}
+            </Dropdown>
+          </div>
 
           {speech.speaking && (
             <span className="pill gap-0.5 border-cyan/40 text-cyan-soft">

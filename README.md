@@ -138,12 +138,12 @@ See [`docs/TEST_RESULTS.md`](docs/TEST_RESULTS.md). On the final code:
 |---|---|
 | ESLint | 0 problems |
 | TypeScript | 0 errors |
-| Vitest | **154 passed** |
+| Vitest | **153 passed** |
 | Build | succeeds |
 | Secret scan | clean |
 | Playwright | **19 passed** (incl. live voice with `MEDIQ_E2E_AUDIO_DIR`) |
 
-The Playwright suite includes a live-voice test that pushes **real recorded speech** through the real browser pipeline: the owner's "show me the patient report" is verified (0.56) and opens the report; an unknown speaker's "close the report" is rejected (0.37) and the report stays open; a revoked doctor is rejected.
+The Playwright suite includes a live-voice test that pushes **real recorded speech** through the real browser pipeline: the owner's "show me the patient report" is verified (0.54–0.56) and opens the report; an unknown speaker's "close the report" is rejected (0.29–0.37) and the report stays open; a revoked doctor is rejected.
 
 **Automated vs physical testing:** no physical microphone or webcam exists in the build environment. Gestures are tested by feeding synthetic MediaPipe-format landmark frames through the real tracker → pointer bridge → DOM hit-testing → panel handlers in Chromium (`e2e/gestures.spec.ts`), plus Chromium's synthetic camera for model loading. Voice uses injected recordings with a scripted speech-recognition stand-in. **Real-room microphone and hand-gesture behaviour must be checked on the demo laptop.** No successful Gemini or Hermes call was made, because no credentials were available; the failure and fallback paths were tested against Google's real endpoint.
 
