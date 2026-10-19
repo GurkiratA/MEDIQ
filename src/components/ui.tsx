@@ -202,18 +202,25 @@ export function Modal({ open, onClose, title, children, footer, wide, labelledBy
   const autoId = useId()
   const titleId = labelledBy ?? `modal-${autoId}`
   const ref = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
     if (!open) return
     const prev = document.activeElement as HTMLElement | null
     const node = ref.current
-    const focusables = () => Array.from(node?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])') ?? [])
-    ;(focusables()[0] ?? node)?.focus()
+    if (node && !node.contains(document.activeElement)) {
+      const initial = node.querySelector<HTMLElement>('[autofocus], input:not([disabled]), textarea:not([disabled]), select:not([disabled])')
+      const focusables = () => Array.from(node.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'))
+      ;(initial ?? focusables()[0] ?? node)?.focus()
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
-        onClose()
+        onCloseRef.current()
       }
       if (e.key === 'Tab') {
+        const focusables = () => Array.from(node?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])') ?? [])
         const f = focusables()
         if (!f.length) return
         const first = f[0]
@@ -232,7 +239,7 @@ export function Modal({ open, onClose, title, children, footer, wide, labelledBy
       document.removeEventListener('keydown', onKey)
       prev?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

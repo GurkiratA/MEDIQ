@@ -174,7 +174,7 @@ export function EnrollmentWizard({ mode, onClose }: { mode: WizardMode; onClose:
         <div className="space-y-4 text-sm">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Display name" htmlFor="enr-name">
-              <input id="enr-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dr. Avery (demo)" maxLength={60} />
+              <input id="enr-name" className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dr. Avery (demo)" maxLength={60} />
             </Field>
             <Field label="Synthetic clinician identifier">
               <p className="input font-mono text-ink-muted">{mode.kind === 'reenroll' ? mode.profile.clinicianId : nextClinicianId(snap.doctors)}</p>

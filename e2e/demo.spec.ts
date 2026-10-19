@@ -149,3 +149,20 @@ test('a failing Gemini provider falls back to labelled local rules (key held in 
     await page.getByRole('button', { name: 'Clear session credentials' }).click()
   }
 })
+
+test('typing name with spaces in enrollment wizard maintains focus without stealing', async ({ page }) => {
+  await page.goto('/')
+  if (await page.getByRole('button', { name: 'Initialise MEDIQ' }).isVisible()) {
+    await page.keyboard.press('Escape')
+  }
+  const enrollBtn = page.getByRole('button', { name: 'Enroll owner voice' })
+  if (await enrollBtn.isVisible()) {
+    await enrollBtn.click()
+  }
+  const nameInput = page.getByLabel('Display name')
+  await expect(nameInput).toBeVisible()
+  await nameInput.click()
+  await nameInput.pressSequentially('Dr. Sarah Connor MD', { delay: 20 })
+  await expect(nameInput).toHaveValue('Dr. Sarah Connor MD')
+  await expect(nameInput).toBeFocused()
+})

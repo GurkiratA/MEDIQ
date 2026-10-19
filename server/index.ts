@@ -14,7 +14,8 @@ createApp().listen(port, host, () => {
   const status = providerStatuses()
     .map((p) => `${p.label}: ${p.configured ? `configured (${p.model})` : 'not configured'}`)
     .join(' · ')
-  console.log(`[mediq] API listening on http://${host}:${port}`)
+  const displayHost = host === '0.0.0.0' ? 'localhost' : host
+  console.log(`[mediq] App running at http://${displayHost}:${port}`)
   console.log(`[mediq] ${status}`)
   console.log('[mediq] Missing providers are fine — MEDIQ falls back to labelled local rules.')
 })
