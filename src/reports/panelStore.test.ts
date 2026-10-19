@@ -47,6 +47,19 @@ describe('PanelStore', () => {
     expect(s.get(id)!.w).toBeLessThanOrEqual(1440)
   })
 
+  it('growing keeps the panel fully on-screen and below the top bar', () => {
+    const s = new PanelStore(vp)
+    const id = s.open('summary', '104')
+    s.scaleAround(id, { ...s.get(id)! }, 1.6)
+    const p = s.get(id)!
+    expect(p.x).toBeGreaterThanOrEqual(0)
+    expect(p.x + p.w).toBeLessThanOrEqual(1440)
+    expect(p.y).toBeGreaterThanOrEqual(64)
+    expect(p.y + p.h).toBeLessThanOrEqual(900)
+    s.moveTo(id, 100, -400)
+    expect(s.get(id)!.y).toBe(64)
+  })
+
   it('closes the front panel, or all', () => {
     const s = new PanelStore(vp)
     s.open('summary', '104')

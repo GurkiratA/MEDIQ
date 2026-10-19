@@ -23,7 +23,9 @@ export const MIN_W = 340
 export const MIN_H = 240
 /** Always keep this much of a panel on-screen so it can be grabbed back. */
 const KEEP_VISIBLE = 96
+/** The top bar stays uncovered so navigation is always reachable. */
 const TOP_RESERVED = 64
+const MARGIN = 8
 
 export type Viewport = () => { w: number; h: number }
 
@@ -71,7 +73,7 @@ export class PanelStore {
 
   maxSize() {
     const v = this.viewport()
-    return { w: Math.max(MIN_W, v.w * 0.96), h: Math.max(MIN_H, (v.h - TOP_RESERVED) * 0.98) }
+    return { w: Math.max(MIN_W, v.w - 2 * MARGIN), h: Math.max(MIN_H, v.h - TOP_RESERVED - MARGIN) }
   }
 
   clampSize(w: number, h: number) {
@@ -83,8 +85,15 @@ export class PanelStore {
     const v = this.viewport()
     return {
       x: Math.round(Math.min(v.w - KEEP_VISIBLE, Math.max(KEEP_VISIBLE - w, x))),
-      y: Math.round(Math.min(v.h - KEEP_VISIBLE / 2, Math.max(TOP_RESERVED / 2, y))),
+      y: Math.round(Math.min(v.h - KEEP_VISIBLE / 2, Math.max(TOP_RESERVED, y))),
     }
+  }
+
+  /** Fully on-screen when it fits (used when the size changes, so growing never pushes it off an edge). */
+  clampInside(x: number, y: number, w: number, h: number) {
+    const v = this.viewport()
+    const fit = (p: number, size: number, lo: number, hi: number) => (size > hi - lo ? lo + (hi - lo - size) / 2 : Math.min(hi - size, Math.max(lo, p)))
+    return { x: Math.round(fit(x, w, MARGIN, v.w - MARGIN)), y: Math.round(fit(y, h, TOP_RESERVED, v.h - MARGIN)) }
   }
 
   /** Opens a report, or brings an identical one to the front. Returns its id. */
@@ -95,9 +104,9 @@ export class PanelStore {
       return existing.id
     }
     const v = this.viewport()
-    const { w, h } = this.clampSize(Math.min(760, v.w * 0.52), Math.min(820, (v.h - TOP_RESERVED) * 0.84))
+    const { w, h } = this.clampSize(Math.min(760, v.w * 0.52), Math.min(820, (v.h - TOP_RESERVED) * 0.86))
     const cascade = (this.panels.length % 5) * 28
-    const pos = this.clampPos(v.w - w - 40 - cascade, TOP_RESERVED + 24 + cascade, w)
+    const pos = this.clampInside(v.w - w - 40 - cascade, TOP_RESERVED + 20 + cascade, w, h)
     const id = `panel-${++this.seq}`
     this.commit([...this.panels, { id, kind, patientId, w, h, ...pos, z: ++this.z }])
     return id
@@ -141,7 +150,7 @@ export class PanelStore {
     const s = this.clampSize(base.w * k, base.h * k)
     const cx = base.x + base.w / 2
     const cy = base.y + base.h / 2
-    this.patch(id, { ...s, ...this.clampPos(cx - s.w / 2, cy - s.h / 2, s.w) })
+    this.patch(id, { ...s, ...this.clampInside(cx - s.w / 2, cy - s.h / 2, s.w, s.h) })
   }
 
   scaleTop(factor: number): boolean {

@@ -157,6 +157,9 @@ interface HandState {
   poseChangedAt: number
   settling: { raw: HandPose; since: number; held: HandPose }
   sideVote: number
+  /** False until this hand has been seen with its fingers apart. A hand that
+   *  enters (or re-enters) the frame already pinched cannot press until it opens. */
+  armed: boolean
   hand: TrackedHand
 }
 
@@ -225,7 +228,6 @@ export class HandTracker {
       }
 
       let s = this.states.get(id)
-      const fresh = !s
       if (!s) {
         s = {
           filters: {
@@ -237,6 +239,7 @@ export class HandTracker {
           poseChangedAt: nowMs,
           settling: { raw: 'other', since: nowMs, held: 'other' },
           sideVote: 0,
+          armed: false,
           hand: { id, side: named, points: [], x: wrist.x, y: wrist.y, aimX: wrist.x, aimY: wrist.y, pinched: false, closeness: 0, pose: 'other', span: 1 },
         }
         this.states.set(id, s)
@@ -251,11 +254,12 @@ export class HandTracker {
       const gap = iso(points[THUMB_TIP], points[INDEX_TIP]) / (iso(points[WRIST], points[MIDDLE_MCP]) || 1e-6)
 
       // Pinch: hysteresis, then confirmation, then a settling window after a pose change.
-      const wants = hand.pinched ? gap < c.pinchOff : gap < c.pinchOn
+      if (gap >= c.pinchOn) s.armed = true
+      const wants = s.armed && (hand.pinched ? gap < c.pinchOff : gap < c.pinchOn)
       if (wants && !hand.pinched) s.pinchSince = s.pinchSince ?? nowMs
       else if (!wants) s.pinchSince = null
       const settled = nowMs - s.poseChangedAt > c.poseSettleMs
-      const pinched = hand.pinched ? wants : wants && s.pinchSince !== null && nowMs - s.pinchSince >= c.pinchConfirmMs && settled && !fresh
+      const pinched = hand.pinched ? wants : wants && s.pinchSince !== null && nowMs - s.pinchSince >= c.pinchConfirmMs && settled
       hand.closeness = Math.max(0, Math.min(1, 1 - (gap - c.pinchOn) / (c.pinchOff - c.pinchOn)))
 
       const tip = points[INDEX_TIP]

@@ -137,6 +137,16 @@ describe('HandTracker', () => {
     expect(r.lost).toEqual([expect.objectContaining({ wasPinched: true })])
   })
 
+  it('a hand that appears already pinched cannot press until it opens', () => {
+    const t = new HandTracker()
+    const clock = { now: 0 }
+    let r = run(t, clock, [{ x: 500, y: 400, pose: 'pinch' }], 20)
+    expect(r.hands[0].pinched).toBe(false)
+    r = run(t, clock, [{ x: 500, y: 400, pose: 'point' }], 10)
+    r = run(t, clock, [{ x: 500, y: 400, pose: 'pinch' }], 6)
+    expect(r.hands[0].pinched).toBe(true)
+  })
+
   it('reports two-hand pinch span for resizing', () => {
     const t = new HandTracker()
     const clock = { now: 0 }
