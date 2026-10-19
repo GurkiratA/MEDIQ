@@ -3,7 +3,8 @@
 A browser-based clinical co-pilot prototype built for **Hack Day Guelph (Hacktoberfest × GDG on Campus)**. It combines:
 - a clinical dashboard over synthetic records;
 - doctor voice verification before any voice command runs;
-- touchless hand-gesture navigation;
+- a cinematic start-up sequence and floating, interactive clinical reports;
+- two-hand touchless control (drag, resize, scroll, click, close) of those reports;
 - AI-structured visit notes with an independent safety audit;
 - a mandatory human-confirmation step before anything is saved.
 
@@ -19,7 +20,7 @@ npm install          # also copies WASM runtimes into public/vendor (postinstall
 npm run dev          # web app + local API together
 ```
 
-Open **http://localhost:5173**. No API keys are needed: without them, MEDIQ runs on clearly labelled local deterministic fallbacks.
+Open **http://localhost:5173** in a real Chrome/Edge window and click **Initialise MEDIQ** (the intro plays once per tab; **Esc** skips it, `?intro` forces it, *More → Replay intro* replays it). No API keys are needed: without them, MEDIQ runs on clearly labelled local deterministic fallbacks.
 
 ### 🐳 Run Anywhere with Docker (Single Command)
 
@@ -62,7 +63,9 @@ Then open **AI Provider Settings → Test connection**. Full instructions, inclu
 
 ## Features
 
-- **Clinical dashboard:** patient, admission and room KPIs; occupancy meters; recent records and visits; pending reviews; medication safety alerts; voice-verification and allocation activity; current AI provider and fallback status.
+- **Start-up sequence:** dark gate → boot music → ECG trace, scan line and biometric rings → MEDIQ wordmark → readiness checks taken from live state (enrolled voiceprints, record count, safety rules) → spoken British greeting → workspace. Skippable, once per tab session.
+- **Clinical dashboard:** the patient in focus (identity, severe-allergy alert, latest vitals, report launchers), assistant status (voice, hands, AI), open safety flags and four KPIs. Rooms, activity and AI detail live in their own views.
+- **Floating reports:** *Clinical summary*, *Latest visit note*, *Medication report*, *Laboratory report* and *Vital signs* open as movable, resizable, scrollable windows over the workspace — from the launch buttons, by voice, or by hand. They show only stored synthetic data ("Not documented" otherwise), put severe-allergy and review flags first, mark unconfirmed notes, and carry the synthetic / not-a-medical-device / clinician-review footer. Text stays selectable.
 - **Separate synthetic databases** in IndexedDB object stores behind a validated repository:
   - patients (with structured allergies, vitals, labs, injuries and imaging);
   - rooms;
@@ -79,7 +82,8 @@ Then open **AI Provider Settings → Test connection**. Full instructions, inclu
 - **Medication records:** values shown only as documented ("Not documented" otherwise). Effects are categorised as beneficial, adverse, patient-reported, flagged interaction or not yet assessed. Potential-conflict checks use the WHO ATC drug-class table.
 - **Voice assistant:**
   - push-to-talk (button or **Alt+V**) with a live transcript;
-  - a deterministic command router (no LLM for navigation);
+  - a deterministic command router (no LLM for navigation), including report commands: "show me the patient report", "display the latest visit note", "bring up the medication report", "make this report larger", "scroll down", "close the report";
+  - spoken replies prefer an installed British English voice (e.g. Daniel, Google UK English Male); quality depends on the voices on the machine;
   - an experimental "Hey MEDIQ" wake phrase;
   - typed fallback, help, and speech output.
 - **Doctor-only voice verification:** an on-device **WeSpeaker ResNet34** speaker-embedding model (ONNX, WASM), validated against real speech.
@@ -89,13 +93,15 @@ Then open **AI Provider Settings → Test connection**. Full instructions, inclu
 
   See [`docs/SPEAKER_VERIFICATION.md`](docs/SPEAKER_VERIFICATION.md).
 - **Demo Quick-Sim:** scripted, clearly labelled scenarios (authorized, unknown, revoked, penicillin dictation) for noisy venues. They never touch real enrollment.
-- **Touchless gestures:** MediaPipe HandLandmarker, processed locally, with a picture-in-picture skeleton preview.
-  - **Open palm** pauses listening.
-  - **Swipe** moves through Overview → Vitals → Labs → Visit Notes.
-  - **Pinch** activates the focused control (never inside dialogs).
-  - **Thumbs-up** confirms a dialog only after the review box is ticked.
+- **Touchless hand control** (MediaPipe HandLandmarker, both hands, processed locally; camera off until enabled). Each hand drives its own on-screen pointer; see [`docs/GESTURES.md`](docs/GESTURES.md).
+  - **Point** moves the cursor; **pinch + release** clicks the control under it.
+  - **Pinch + move** drags a report from *anywhere* on it; release drops it.
+  - **Both hands pinch** and pull apart / together to resize a report about its centre.
+  - **Two fingers up** (index + middle) moved up/down scrolls whatever is under the hand.
+  - **Fist held ~1 s** over a report closes it (progress ring shown).
+  - **Thumbs-up** confirms a dialog only after the review box is ticked; **open palm** pauses an active microphone.
 
-  Dwell, release-to-rearm and cooldowns prevent repeat triggers.
+  1€ smoothing, pinch hysteresis + confirmation + post-pose settling, continuity-based hand identity, and release-on-tracking-loss keep it stable. Hand presses are refused in modal dialogs and access-control areas.
 - **Dual-AI clinical documentation:**
   - Model A (Hermes 3 / DigitalOcean) produces a structured SOAP draft.
   - Model B (Google Gemini) runs an independent safety audit.
@@ -132,14 +138,14 @@ See [`docs/TEST_RESULTS.md`](docs/TEST_RESULTS.md). On the final code:
 |---|---|
 | ESLint | 0 problems |
 | TypeScript | 0 errors |
-| Vitest | **93 passed** |
+| Vitest | **153 passed** |
 | Build | succeeds |
 | Secret scan | clean |
-| Playwright | **8 passed** |
+| Playwright | **19 passed** (incl. live voice with `MEDIQ_E2E_AUDIO_DIR`) |
 
-The Playwright suite includes a live-voice test that pushes **real recorded speech** through the real browser pipeline: owner accepted at 0.57, unknown speaker rejected at 0.35, revoked doctor rejected.
+The Playwright suite includes a live-voice test that pushes **real recorded speech** through the real browser pipeline: the owner's "show me the patient report" is verified (0.54–0.56) and opens the report; an unknown speaker's "close the report" is rejected (0.29–0.37) and the report stays open; a revoked doctor is rejected.
 
-**Automated vs physical testing:** no physical microphone or webcam exists in the build environment. Gesture logic is tested with landmark fixtures and Chromium's synthetic camera. Voice uses injected recordings with a scripted speech-recognition stand-in. **Real-room microphone and hand-gesture behaviour must be checked on the demo laptop.** No successful Gemini or Hermes call was made, because no credentials were available; the failure and fallback paths were tested against Google's real endpoint.
+**Automated vs physical testing:** no physical microphone or webcam exists in the build environment. Gestures are tested by feeding synthetic MediaPipe-format landmark frames through the real tracker → pointer bridge → DOM hit-testing → panel handlers in Chromium (`e2e/gestures.spec.ts`), plus Chromium's synthetic camera for model loading. Voice uses injected recordings with a scripted speech-recognition stand-in. **Real-room microphone and hand-gesture behaviour must be checked on the demo laptop.** No successful Gemini or Hermes call was made, because no credentials were available; the failure and fallback paths were tested against Google's real endpoint.
 
 ## Known limitations
 
@@ -165,13 +171,22 @@ The Playwright suite includes a live-voice test that pushes **real recorded spee
 
 ## Prior work: JARVIS
 
-[GurkiratA/JARVIS](https://github.com/GurkiratA/jarvis) (MIT) was inspected. MEDIQ adopts several of its ideas:
+[GurkiratA/JARVIS](https://github.com/GurkiratA/jarvis) (MIT, © 2026 Aditya Dewaskar) was inspected.
+
+**Reused / adapted from JARVIS (hackathon redesign):**
+- the 1€ filter (`src/gestures/oneEuro.ts`, adapted) and the hand-tracking approach in `src/gestures/handTracker.ts` / `pointerBridge.ts`: continuity-based hand identity, pinch-to-span ratios with hysteresis and confirmation, aiming presses from just before the pinch, synthetic pointer events with safe pointer capture, and two-hand pinch resize / two-finger scroll;
+- the start-up structure (gate → music → instrumentation → name → spoken hand-off) and its boot track `public/audio/boot-music.mp3` (Kevin MacLeod, CC BY 4.0 — credited on screen and in `public/audio/CREDITS.md`);
+- the British-voice ranking idea for speech output.
+
+Not reused: JARVIS's Iron Man visuals, Three.js scene, Claude bridge and voice-auth bridge. MEDIQ keeps its own MediaPipe setup, voice pipeline and speaker verification.
+
+Earlier, for speaker verification, MEDIQ adopted these JARVIS ideas:
 - verify each utterance's speaker embedding **before** routing;
 - average windowed embeddings for enrollment;
 - choose a conservative threshold over the model's generic default;
 - require explicit owner intent to add a second voice.
 
-**No JARVIS code was copied.** MEDIQ differs in these ways:
+For speaker verification no JARVIS code was copied. MEDIQ differs in these ways:
 - It runs verification **in the browser** rather than in a Node bridge.
 - It **fails closed** when nobody is enrolled, whereas JARVIS accepts everyone.
 - It mechanically requires owner voice re-verification for profile changes, where JARVIS relies on a conversational confirmation.
@@ -182,5 +197,7 @@ The Playwright suite includes a live-voice test that pushes **real recorded spee
 MEDIQ source code: **MIT** ([LICENSE](LICENSE)). Bundled models keep their own licences; see [`public/models/MODELS.md`](public/models/MODELS.md):
 - WeSpeaker ResNet34: CC BY 4.0.
 - MediaPipe hand landmarker: Apache-2.0.
+- Intro music "Impact Prelude" by Kevin MacLeod (incompetech.com): CC BY 4.0 (`public/audio/CREDITS.md`).
+- 1€ filter and hand-tracking approach adapted from JARVIS: MIT.
 
 Key dependencies: React, Vite, Tailwind CSS, lucide-react, onnxruntime-web, @mediapipe/tasks-vision, @google/genai, Express, Zod, idb (MIT/Apache-2.0).

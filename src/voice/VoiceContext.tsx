@@ -12,11 +12,13 @@ import { useData } from '../state/DataContext'
 import { useNav } from '../state/NavContext'
 import { useNoteDrafts } from '../state/NoteDraftContext'
 import { useToast } from '../state/ToastContext'
+import { usePanels } from '../reports/PanelContext'
 import type { ActivityKind, Permission } from '../db/schema'
 import { MicCapture, MicPermissionError } from './audioCapture'
 import { describeCommand, parseCommand, type Command } from './commands'
 import { assessSample, VERIFY_THRESHOLDS, type QualityReport } from './quality'
 import { routeCommand } from './router'
+import { gateVoiceCommand } from './gate'
 import { embedUtterance, loadSpeakerModel, speakerModelStatus, type ModelState } from './speakerModel'
 import { Recognizer, speechRecognitionSupported } from './speechRecognition'
 import { speak, stopSpeech } from './tts'
@@ -105,6 +107,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const nav = useNav()
   const drafts = useNoteDrafts()
   const toast = useToast()
+  const panels = usePanels()
 
   const [status, setStatus] = useState<VoiceStatus>('not-enrolled')
   const [statusDetail, setStatusDetail] = useState<string | null>(null)
@@ -132,6 +135,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   navRef.current = nav
   const draftsRef = useRef(drafts)
   draftsRef.current = drafts
+  const panelsRef = useRef(panels)
+  panelsRef.current = panels
 
   const authorizedCount = useMemo(() => {
     if (!snap) return 0
@@ -207,6 +212,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           stopEverything()
           stopWake()
         },
+        reports: {
+          open: (kind, patientId) => void panelsRef.current.open(kind, patientId),
+          hasOpen: () => !!panelsRef.current.store.top(),
+          closeTop: () => panelsRef.current.closeTop(),
+          closeAll: () => panelsRef.current.closeAll(),
+          scaleTop: (f) => panelsRef.current.scaleTop(f),
+          scrollTop: (dir) => panelsRef.current.scrollTop(dir),
+        },
       })
       if (r.executed) lastExecRef.current = { key, at: now }
       if (origin !== 'typed' && r.spoken) sayIfAllowed(r.spoken)
@@ -276,28 +289,32 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       setStatusDetail('Verifying speaker…')
       const cmd = parseCommand(text)
       const intent = cmd.type
-      const { decision, quality, error } = await verifySample(pcm, 'voice-navigation')
-      if (error) {
+      const sample = await verifySample(pcm, 'voice-navigation')
+      const { quality } = sample
+      const gate = gateVoiceCommand(sample)
+      if (!gate.allowed && gate.reason === 'unavailable') {
         setStatus('unavailable')
-        setStatusDetail(error)
-        record({ origin, command: describeCommand(cmd), transcript: text, decision: null, quality, executed: false, headline: 'Verification Unavailable — command not executed.', detail: error })
+        setStatusDetail(gate.error)
+        record({ origin, command: describeCommand(cmd), transcript: text, decision: null, quality, executed: false, headline: 'Verification Unavailable — command not executed.', detail: gate.error })
         await log({ kind: 'verification-failed', category: 'security', mode: 'live', message: 'Speaker verification unavailable; command blocked (fail-closed).', details: { intent } })
         return
       }
-      if (!decision) {
+      if (!gate.allowed && gate.reason === 'poor-sample') {
         setStatus('access-denied')
         setStatusDetail(quality.issues[0] ?? 'Poor sample')
         record({ origin, command: describeCommand(cmd), transcript: text, decision: null, quality, executed: false, headline: 'Voice Not Verified: Access Denied.', detail: `Sample rejected before verification: ${quality.issues.join(' ')} Please retry.` })
         await logDecision(null, quality, intent, origin)
         return
       }
-      await logDecision(decision, quality, intent, origin)
-      if (decision.outcome !== 'accepted') {
+      await logDecision(sample.decision, quality, intent, origin)
+      if (!gate.allowed) {
+        const decision = gate.reason === 'rejected' ? gate.decision : sample.decision!
         setStatus(decision.outcome === 'unknown-speaker' ? 'unknown-speaker' : 'access-denied')
         setStatusDetail(decisionReason(decision))
         record({ origin, command: describeCommand(cmd), transcript: text, decision, quality, executed: false, headline: decisionMessage(decision), detail: `${decisionReason(decision)} The command was not executed. You may retry.` })
         return
       }
+      const decision = gate.decision
       setStatus('verified')
       setStatusDetail(`${decision.displayName} · score ${decision.score.toFixed(2)}`)
       const r = execute(cmd, origin)
@@ -553,7 +570,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         const w = { mic, rec: new Recognizer(), utteranceStart: null as number | null, awaitUntil: 0, stopped: false }
         wakeRef.current = w
         setWakeModeState(true)
-        const WAKE = /\b(hey|hi|ok|okay)\s+(mediq|medic|medi q|media q)\b/i
+        const WAKE = /\b(?:(?:hey|hi|ok|okay)\s+)?(mediq|medic|medi q|media q|medi queue)\b/i
         const startRec = () => {
           if (w.stopped) return
           w.rec.start(

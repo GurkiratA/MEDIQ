@@ -15,6 +15,8 @@ async function start(page: Page) {
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name }).click()
 
 test.beforeEach(async ({ page }) => {
+  // The cinematic intro has its own test (intro.spec.ts); skip it here.
+  await page.addInitScript(() => sessionStorage.setItem('mediq.introSeen', '1'))
   // Fresh synthetic database per test.
   await page.goto('/')
   await page.evaluate(() => new Promise<void>((r) => { const req = indexedDB.deleteDatabase('mediq-synthetic'); req.onsuccess = req.onerror = req.onblocked = () => r() }))

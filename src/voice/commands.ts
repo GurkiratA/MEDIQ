@@ -3,6 +3,7 @@
  * Input is a speech-recognition transcript (or typed text); output is a
  * typed intent. Unknown input maps to { type: 'unknown' } — never guessed.
  */
+import type { ReportKind } from '../reports/reportKinds'
 
 export type Command =
   | { type: 'show-dashboard' }
@@ -23,9 +24,20 @@ export type Command =
   | { type: 'next-tab' }
   | { type: 'previous-tab' }
   | { type: 'help' }
+  | { type: 'open-report'; report: ReportKind }
+  | { type: 'close-report'; all: boolean }
+  | { type: 'resize-report'; direction: 'larger' | 'smaller' }
+  | { type: 'scroll-report'; direction: 'up' | 'down' }
   | { type: 'unknown'; text: string }
 
 export const COMMAND_HELP: { phrase: string; description: string }[] = [
+  { phrase: 'Show the patient report / clinical summary', description: 'Floating clinical summary for the active patient' },
+  { phrase: 'Display the latest visit note', description: 'Floating latest visit note' },
+  { phrase: 'Bring up the medication report', description: 'Floating medication report' },
+  { phrase: 'Open the lab report / vitals report', description: 'Floating labs or vitals' },
+  { phrase: 'Make this report larger / smaller', description: 'Resize the front report' },
+  { phrase: 'Scroll down / Scroll up', description: 'Scroll the front report' },
+  { phrase: 'Close the report / Close all reports', description: 'Close floating reports' },
   { phrase: 'Show patients', description: 'Open the synthetic patient list' },
   { phrase: 'Open patient 104', description: 'Open a patient record by ID' },
   { phrase: 'Show allergies', description: 'Allergies for the active patient' },
@@ -45,7 +57,7 @@ export const COMMAND_HELP: { phrase: string; description: string }[] = [
 
 /** Commands that act on "the active patient" and must not guess one. */
 export function requiresPatient(c: Command): boolean {
-  return ['show-allergies', 'show-labs', 'show-vitals', 'start-note', 'summarize', 'next-tab', 'previous-tab'].includes(c.type)
+  return ['show-allergies', 'show-labs', 'show-vitals', 'start-note', 'summarize', 'next-tab', 'previous-tab', 'open-report'].includes(c.type)
 }
 
 const DIGIT_WORDS: Record<string, string> = {
@@ -105,6 +117,8 @@ export function parseCommand(raw: string): Command {
   if (/^(go )?back\b/.test(t) || t === 'previous screen') return { type: 'go-back' }
   if (/^(help|what can i say|commands|show commands)\b/.test(t)) return { type: 'help' }
   if (/\b(read|speak|say)\b.*\b(summary|that)\b/.test(t)) return { type: 'read-summary' }
+  const panel = parseReportCommand(t)
+  if (panel) return panel
   if (/\b(summari[sz]e|summary of)\b/.test(t)) return { type: 'summarize' }
   if (/\b(start|begin|new|create|open)\b.*\b(visit )?note\b/.test(t) || /\bdictate\b/.test(t)) return { type: 'start-note' }
   if (/\bnext tab\b/.test(t)) return { type: 'next-tab' }
@@ -131,12 +145,44 @@ export function parseCommand(raw: string): Command {
   return { type: 'unknown', text: raw }
 }
 
+const REPORT_NOUN = '(report|summary|panel|sheet)'
+const SHOW_VERB = /\b(show|open|display|bring up|pull up|view|see|give|get|load|present)\b/
+
+/** Report-panel commands. Needs an explicit report noun so "show medications" keeps navigating. */
+function parseReportCommand(t: string): Command | null {
+  if (/^(close|dismiss|hide|clear)\b/.test(t) || /\b(close|dismiss|hide)\b.*\b(report|reports|summary|panel|panels|window|windows|note)\b/.test(t)) {
+    if (/\b(all|everything|reports|panels|windows)\b/.test(t)) return { type: 'close-report', all: true }
+    if (/^(close|dismiss|hide|clear)( (it|this|that|report|panel|window|summary|note|this report|that report|current report))?$/.test(t) || /\b(report|summary|panel|window|note)\b/.test(t)) return { type: 'close-report', all: false }
+  }
+  if (/\b(scroll|page|move) (down|up)\b/.test(t) || /^(down|up)$/.test(t)) return { type: 'scroll-report', direction: /\bup\b/.test(t) ? 'up' : 'down' }
+  if (/\b(larger|bigger|enlarge|expand|zoom in|increase size|grow)\b/.test(t)) return { type: 'resize-report', direction: 'larger' }
+  if (/\b(smaller|shrink|zoom out|reduce|decrease size)\b/.test(t)) return { type: 'resize-report', direction: 'smaller' }
+  if (!SHOW_VERB.test(t) && !/\b(report|summary)$/.test(t)) return null
+  if (/\b(start|begin|new|create|dictate)\b/.test(t)) return null
+  if (new RegExp(`\\b(medication|medications|meds|drug|drugs|prescription|prescriptions) ${REPORT_NOUN}\\b`).test(t)) return { type: 'open-report', report: 'medications' }
+  if (new RegExp(`\\b(lab|labs|laboratory|lab results|blood|bloods) ${REPORT_NOUN}\\b`).test(t)) return { type: 'open-report', report: 'labs' }
+  if (new RegExp(`\\b(vitals|vital signs|vital|observations|obs) ${REPORT_NOUN}\\b`).test(t)) return { type: 'open-report', report: 'vitals' }
+  if (new RegExp(`\\b(visit|consultation|encounter) ${REPORT_NOUN}\\b`).test(t) || /\b(latest|last|recent|most recent|previous) (visit |clinical )?note\b/.test(t) || /\bvisit note\b/.test(t))
+    return { type: 'open-report', report: 'visit' }
+  if (new RegExp(`\\b(patient|clinical|patients|case|summary) ${REPORT_NOUN}\\b`).test(t) || /\b(patient|clinical) (summary|report|overview)\b/.test(t) || /^(show|open|display|bring up|pull up|view) (report|summary)$/.test(t))
+    return { type: 'open-report', report: 'summary' }
+  return null
+}
+
 export function describeCommand(c: Command): string {
   switch (c.type) {
     case 'open-patient':
       return `Open patient ${c.patientId}`
     case 'show-rooms':
       return c.filter === 'all' ? 'Show rooms' : `Show ${c.filter} rooms`
+    case 'open-report':
+      return `Open ${({ summary: 'clinical summary', visit: 'latest visit note', medications: 'medication report', labs: 'lab report', vitals: 'vitals report' } as const)[c.report]}`
+    case 'close-report':
+      return c.all ? 'Close all reports' : 'Close report'
+    case 'resize-report':
+      return `Make report ${c.direction}`
+    case 'scroll-report':
+      return `Scroll report ${c.direction}`
     case 'unknown':
       return 'Unrecognised command'
     default:

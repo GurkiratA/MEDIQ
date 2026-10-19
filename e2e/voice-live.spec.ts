@@ -155,6 +155,7 @@ async function talk(page: Page, voice: string, transcript: string) {
 }
 
 test('enroll owner, verify, reject unknown, authorize + revoke second doctor', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('mediq.introSeen', '1'))
   await setup(page)
   await page.goto('/')
   await page.evaluate(() => new Promise<void>((r) => { const q = indexedDB.deleteDatabase('mediq-synthetic'); q.onsuccess = q.onerror = q.onblocked = () => r() }))
@@ -177,6 +178,17 @@ test('enroll owner, verify, reject unknown, authorize + revoke second doctor', a
   await talk(page, 'leijun.test', 'open patient 104')
   await expect(page.getByRole('heading', { name: /104 Marcus Vance/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /Voice verification status: Verified/ })).toBeVisible()
+
+  // 2b. Floating reports by verified voice; an unknown speaker cannot close them.
+  await talk(page, 'leijun.test', 'MEDIQ, show me the patient report')
+  const report = page.getByRole('dialog', { name: 'Clinical summary' })
+  await expect(report).toBeVisible()
+  await expect(report).toContainText('Documented severe allergy')
+  await talk(page, 'fangjun.test', 'close the report')
+  await expect(page.getByRole('button', { name: /Voice verification status: (Unknown Speaker|Access Denied)/ })).toBeVisible()
+  await expect(report).toBeVisible()
+  await talk(page, 'leijun.test', 'close the report')
+  await expect(report).toHaveCount(0)
 
   // 3. Unknown speaker → rejected, no navigation.
   await nav(page, 'Overview')

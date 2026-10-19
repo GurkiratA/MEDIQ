@@ -47,7 +47,7 @@ export function VoiceView() {
 
   return (
     <>
-      <PageHeader title="Voice Assistant" icon={<Mic className="size-5" />} subtitle="Push-to-talk commands run only after on-device speaker verification and authorization succeed." />
+      <PageHeader title="Voice Assistant" icon={<Mic className="size-5" />} subtitle="Spoken commands run only after on-device speaker verification." />
 
       <div className="grid items-start gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">
@@ -68,7 +68,7 @@ export function VoiceView() {
                 {voice.status === 'verification-pending' || voice.status === 'loading-model' ? <Loader2 className="size-8 animate-spin" /> : listening ? <MicOff className="size-8" /> : <Mic className="size-8" />}
               </button>
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-ink-muted">{voice.statusDetail ?? (listening ? 'Listening…' : 'Press, speak a command (e.g. “Open patient 104”), and MEDIQ verifies your voice before acting.')}</p>
+                <p className="text-sm text-ink-muted">{voice.statusDetail ?? (listening ? 'Listening…' : 'Press and speak — e.g. “Show the clinical summary”.')}</p>
                 <p className="mt-1 min-h-6 text-lg font-medium text-ink" aria-live="polite">
                   {voice.transcript || <span className="text-ink-faint">Transcript appears here</span>}
                 </p>
@@ -107,15 +107,15 @@ export function VoiceView() {
             <ol className="grid gap-2 text-xs sm:grid-cols-3">
               <li className="rounded-lg border border-line bg-surface-2 p-2.5">
                 <p className="font-semibold text-ink">1 · Speech recognition</p>
-                <p className="text-ink-muted">What was said. Browser Web Speech API — may use the browser vendor’s online service.</p>
+                <p className="text-ink-muted">What was said (browser Web Speech; may use the vendor’s online service).</p>
               </li>
               <li className="rounded-lg border border-line bg-surface-2 p-2.5">
                 <p className="font-semibold text-ink">2 · Speaker verification</p>
-                <p className="text-ink-muted">Who said it. WeSpeaker ResNet34 embedding, on-device; cosine score vs. enrolled profiles (threshold {snap.settings.verificationThreshold.toFixed(2)}).</p>
+                <p className="text-ink-muted">Who said it — on-device voiceprint, threshold {snap.settings.verificationThreshold.toFixed(2)}.</p>
               </li>
               <li className="rounded-lg border border-line bg-surface-2 p-2.5">
                 <p className="font-semibold text-ink">3 · Authorization</p>
-                <p className="text-ink-muted">Matched profile must be active, not revoked, with an owner-granted permission.</p>
+                <p className="text-ink-muted">Active, unrevoked, owner-granted access.</p>
               </li>
             </ol>
 
@@ -151,7 +151,7 @@ export function VoiceView() {
               <Button type="submit" size="sm" disabled={!typed.trim()}>
                 Run typed command
               </Button>
-              <p className="text-xs text-ink-faint">Typed commands are manual input — equivalent to clicking. They need no voice verification and grant no extra privileges.</p>
+              <p className="text-xs text-ink-faint">Equivalent to clicking: no verification, no extra privileges.</p>
             </form>
           </Card>
           <Card>
@@ -162,7 +162,7 @@ export function VoiceView() {
                 Listen for “Hey MEDIQ …”
               </label>
               <p className="text-xs text-ink-faint">
-                Experimental. Keeps the microphone open while enabled and relies on the browser recogniser restarting; not reliable continuous wake-word detection. Every command is still speaker-verified. An open-palm gesture or “stop listening” turns it off.
+                Experimental, keeps the mic open. Every command is still speaker-verified. Say “stop listening” or show an open palm to end.
               </p>
             </div>
           </Card>
@@ -218,7 +218,7 @@ function SimPanel() {
     <Card className="border-sim/40">
       <CardHeader title="Demo Quick-Sim" icon={<FlaskConical className="size-4 text-sim" />} actions={<Badge tone="sim">SIMULATION</Badge>} />
       <div className="space-y-3 p-4">
-        <p className="text-xs text-ink-muted">Scripted, deterministic scenarios for noisy venues. Not a live biometric measurement; never changes enrollment, never grants privileges, logged as simulation.</p>
+        <p className="text-xs text-ink-muted">Scripted scenarios for noisy venues — not live biometrics; never changes enrollment or privileges.</p>
         <div className="grid grid-cols-2 gap-2">
           {items.map((i) => (
             <Button key={i.id} size="sm" variant="sim" onClick={() => voice.runSimulation(i.id)}>

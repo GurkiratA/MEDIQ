@@ -6,12 +6,22 @@ These are actual results from the build environment: Linux, Node 22.22, headless
 |---|---|---|
 | Lint | `npm run lint` | 0 problems |
 | Type check | `npm run typecheck` | 0 errors |
-| Unit and component tests | `npm test` | **93 passed** in 7 files |
+| Unit and component tests | `npm test` | **153 passed** in 13 files |
 | Production build | `npm run build` | succeeded |
 | Bundle secret scan | `npm run check:secrets` | no secrets in `dist/`. Positive control: a planted fake `AIza…` key **was detected** |
-| End-to-end, demo path | `npm run test:e2e` | **7 passed** |
+| End-to-end, demo + gestures + intro | `npm run test:e2e` | **18 passed** (7 demo, 9 gestures, 2 intro) |
 | End-to-end, live voice with real speech | `MEDIQ_E2E_AUDIO_DIR=… npx playwright test e2e/voice-live.spec.ts` | **1 passed** |
 | Production server | `npm run build && npm start` | SPA, deep links, models and `/api/*` served |
+
+## Clinical JARVIS-style redesign (latest run)
+
+- **Gestures (unit, 37 tests):** tracker — mirrored/inset mapping, pinch confirmation, hysteresis band, settle window, re-arm for hands that appear already pinched, aim point before the pinch, poses, identity under handedness flips, loss reporting, two-hand span; pointer bridge — click vs drag, aim-point targeting, hand pointer ids, refusal in `aria-modal`/`data-no-gesture`, release + cancel on loss, two independent pointers; scroll gesture.
+- **Reports (unit/component, 13 tests):** panel store (open/focus/close, clamping, centre scaling, stays below the top bar), two-hand resizer; the real `PanelLayer` driven by bridge events — drag from the body, click-to-close, mouse header-only drag, drag freeze during two-hand resize, resize targeting.
+- **Voice (unit, +26 tests):** report command parsing (and unchanged navigation phrases), report routing, the speaker-verification gate (`gate.ts`) with real `decide()` outcomes — authorized executes; unknown, revoked, no-profile, poor-sample and unavailable never execute; British voice ranking.
+- **Gestures (e2e, 9 tests):** synthetic MediaPipe-format landmark frames through the real pipeline in Chromium: drag from the report body, two-hand resize (grow + shrink, centre kept, on-screen), two-finger scroll without drag, pinch-click launchers and ×, fist-hold close (brief fist ignored), tracking loss mid-drag, refusal inside a confirmation dialog, mouse fallback (header drag, grip resize, Esc), typed report commands.
+- **Intro (e2e, 2 tests):** gate → music request → checks from live data → automatic hand-off; not replayed on navigation or reload; Esc skip and menu replay.
+- **Live voice (e2e, real speech):** owner "show me the patient report" verified at 0.54–0.56 and opened the report; unknown speaker "close the report" rejected at 0.29–0.37 (report stayed open); owner close verified at 0.58; revoked doctor rejected at 0.74 match.
+- **Not tested:** a physical webcam and real hands; real microphones in a room; whether a British voice is installed on the demo laptop.
 
 ## Unit and component coverage (Vitest)
 

@@ -11,18 +11,18 @@ flowchart LR
       ORT --> DEC["Verification decision<br/>threshold · margin · revoked"]
       DEC --> AUTH["Authorization<br/>(owner-granted permissions)"]
       SR --> PARSE["Deterministic command parser"]
-      AUTH --> ROUTE["Router → navigation only"]
+      AUTH --> ROUTE["Router → navigation / report panels only"]
       PARSE --> ROUTE
     end
     subgraph Gest["Gestures"]
-      CAM["Webcam (local only)"] --> MP["MediaPipe HandLandmarker"] --> CLS["Pose + swipe engine<br/>dwell · debounce · cooldown"]
+      CAM["Webcam (local only)"] --> MP["MediaPipe HandLandmarker (2 hands)"] --> CLS["HandTracker<br/>1€ smoothing · pinch hysteresis · identity"] --> PB["PointerBridge<br/>pointer events at element under hand"]
     end
     LOCAL["Local deterministic engine<br/>SOAP structuring + safety rules (always runs)"]
     CONF["ConfirmDialog<br/>explicit human review gate"]
     IDB[("IndexedDB · separate object stores<br/>patients · rooms · admissions · medications<br/>medicationEffects · visits · doctors<br/>authorizations · activity · settings")]
     UI --> CONF --> IDB
     ROUTE --> UI
-    CLS --> UI
+    PB -- "refused in modal dialogs" --> UI
     CLS -. "thumbs-up only after review tick" .-> CONF
   end
   subgraph Server["Local Node API (Express, 127.0.0.1) — holds keys"]
@@ -63,7 +63,9 @@ flowchart LR
 | `src/db/` | Zod schemas, seed data, IndexedDB repository (`database.ts`), allocation rules |
 | `src/state/` | React contexts: data, navigation, note drafts, providers, toasts, confirmation bus |
 | `src/voice/` | Capture, quality, fbank, speaker model, verification, recogniser, TTS, commands, router, orchestrator |
-| `src/gestures/` | Classifier, fixtures, MediaPipe controller, PiP preview |
+| `src/gestures/` | Hand tracker, pointer bridge, scroll gesture, static-pose classifier (thumbs-up/open palm), MediaPipe controller, overlay, camera tile |
+| `src/reports/` | Floating report panels: store, two-hand resizer, report bodies, launchers |
+| `src/intro/` | Start-up sequence |
 | `src/ai/` | Browser AI client (fallback orchestration), local engine, ATC drug-class table, demo scenario |
 | `src/views/` | Screens and dialogs |
 | `server/` | Express API, provider clients, prompts, config/redaction |

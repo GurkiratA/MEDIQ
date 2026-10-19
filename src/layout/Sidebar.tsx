@@ -3,16 +3,17 @@ import { Activity, BedDouble, BrainCircuit, FileText, LayoutDashboard, Mic, Pill
 import { useNav, type View } from '../state/NavContext'
 import { useSnap } from '../state/DataContext'
 
-const ITEMS: { id: View; label: string; icon: typeof Users }[] = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'patients', label: 'Patients', icon: Users },
-  { id: 'rooms', label: 'Rooms & Admissions', icon: BedDouble },
-  { id: 'medications', label: 'Medication Records', icon: Pill },
-  { id: 'voice', label: 'Voice Assistant', icon: Mic },
-  { id: 'notes', label: 'Visit Notes', icon: FileText },
-  { id: 'doctors', label: 'Authorized Doctors & Voiceprints', icon: ShieldCheck },
-  { id: 'ai', label: 'AI Provider Settings', icon: BrainCircuit },
-  { id: 'activity', label: 'Activity Log', icon: Activity },
+/** Short visible labels; the accessible name keeps the full description. */
+const ITEMS: { id: View; label: string; name: string; icon: typeof Users }[] = [
+  { id: 'overview', label: 'Overview', name: 'Overview', icon: LayoutDashboard },
+  { id: 'patients', label: 'Patients', name: 'Patients', icon: Users },
+  { id: 'rooms', label: 'Rooms', name: 'Rooms & Admissions', icon: BedDouble },
+  { id: 'medications', label: 'Medications', name: 'Medication Records', icon: Pill },
+  { id: 'notes', label: 'Visit notes', name: 'Visit Notes', icon: FileText },
+  { id: 'voice', label: 'Voice', name: 'Voice Assistant', icon: Mic },
+  { id: 'doctors', label: 'Access', name: 'Authorized Doctors & Voiceprints', icon: ShieldCheck },
+  { id: 'ai', label: 'AI providers', name: 'AI Provider Settings', icon: BrainCircuit },
+  { id: 'activity', label: 'Activity', name: 'Activity Log', icon: Activity },
 ]
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -20,33 +21,36 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const snap = useSnap()
   const pending = snap.visits.filter((v) => v.reviewStatus === 'Pending review').length
   return (
-    <nav aria-label="Main" className="flex h-full flex-col gap-1 p-3">
-      {ITEMS.map(({ id, label, icon: Icon }) => {
+    <nav aria-label="Main" className="flex h-full flex-col gap-0.5 px-3 py-4">
+      {ITEMS.map(({ id, label, name, icon: Icon }, i) => {
         const active = nav.view === id
         return (
-          <button
-            key={id}
-            type="button"
-            aria-current={active ? 'page' : undefined}
-            onClick={() => {
-              nav.navigate(id === 'patients' ? { view: id, patientId: nav.view === 'patients' ? null : nav.patientId } : { view: id })
-              onNavigate?.()
-            }}
-            className={clsx(
-              'group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
-              active ? 'bg-teal/15 text-ink ring-1 ring-teal/40' : 'text-ink-muted hover:bg-surface-3 hover:text-ink',
-            )}
-          >
-            <Icon className={clsx('size-4 shrink-0', active ? 'text-cyan' : 'text-ink-faint group-hover:text-ink-muted')} />
-            <span className="flex-1 leading-tight">{label}</span>
-            {id === 'notes' && pending > 0 && <span className="rounded bg-warn/15 px-1.5 text-[11px] font-semibold text-warn">{pending}</span>}
-          </button>
+          <div key={id}>
+            {(i === 5 || i === 7) && <div className="mx-2 my-2 h-px bg-line/70" aria-hidden />}
+            <button
+              type="button"
+              aria-current={active ? 'page' : undefined}
+              aria-label={name}
+              onClick={() => {
+                nav.navigate(id === 'patients' ? { view: id, patientId: nav.view === 'patients' ? null : nav.patientId } : { view: id })
+                onNavigate?.()
+              }}
+              className={clsx(
+                'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13.5px] transition-colors',
+                active ? 'bg-cyan/[0.08] text-ink' : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
+              )}
+            >
+              {active && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-cyan shadow-[0_0_10px] shadow-cyan" aria-hidden />}
+              <Icon className={clsx('size-4 shrink-0', active ? 'text-cyan' : 'text-ink-faint group-hover:text-ink-muted')} />
+              <span className="flex-1">{label}</span>
+              {id === 'notes' && pending > 0 && <span className="rounded-full bg-warn/15 px-1.5 text-[11px] font-semibold text-warn">{pending}</span>}
+            </button>
+          </div>
         )
       })}
-      <div className="mt-auto rounded-lg border border-sim/30 bg-sim/5 p-3 text-[11px] leading-relaxed text-ink-muted">
-        <p className="font-semibold text-sim">Hackathon prototype</p>
-        Synthetic data only. Not a medical device. All AI output and safety flags require qualified clinician review.
-      </div>
+      <p className="mt-auto px-3 text-[10.5px] leading-relaxed text-ink-faint">
+        Prototype · synthetic data only · not a medical device. AI output requires clinician review.
+      </p>
     </nav>
   )
 }

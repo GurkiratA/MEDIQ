@@ -3,6 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Spinner } from './components/ui'
 import { GestureProvider } from './gestures/GestureContext'
 import { GesturePreview } from './gestures/GesturePreview'
+import { HandOverlay } from './gestures/HandOverlay'
+import { Intro } from './intro/Intro'
+import { introAlreadySeen } from './intro/introSession'
+import { AssistantDock } from './layout/AssistantDock'
+import { PanelLayer } from './reports/PanelLayer'
+import { PanelProvider } from './reports/PanelContext'
 import { Sidebar } from './layout/Sidebar'
 import { TopBar } from './layout/TopBar'
 import { DataProvider, useData } from './state/DataContext'
@@ -48,6 +54,7 @@ function CurrentView() {
 
 function Shell() {
   const [drawer, setDrawer] = useState(false)
+  const [intro, setIntro] = useState(() => !introAlreadySeen())
   const nav = useNav()
   const mainRef = useRef<HTMLElement>(null)
   // Move focus to the main region on navigation for keyboard/screen-reader users.
@@ -59,9 +66,9 @@ function Shell() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[70] focus:rounded focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>
-      <TopBar onMenu={() => setDrawer(true)} />
+      <TopBar onMenu={() => setDrawer(true)} onReplayIntro={() => setIntro(true)} />
       <div className="flex">
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-64 shrink-0 overflow-y-auto border-r border-line bg-surface/40 lg:block">
+        <aside className="sticky top-[60px] hidden h-[calc(100vh-60px)] w-[220px] shrink-0 overflow-y-auto border-r border-line/70 lg:block">
           <Sidebar />
         </aside>
         {drawer && (
@@ -77,14 +84,17 @@ function Shell() {
             </div>
           </div>
         )}
-        <main id="main" ref={mainRef} className="min-w-0 flex-1 px-3 py-5 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-[1400px] animate-fade-in" key={nav.view}>
+        <main id="main" ref={mainRef} className="min-w-0 flex-1 px-3 pb-28 pt-5 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1360px] animate-fade-in" key={nav.view}>
             <CurrentView />
           </div>
         </main>
       </div>
+      <PanelLayer />
+      <AssistantDock />
       <GesturePreview />
-      <OnboardingDialog />
+      <HandOverlay />
+      {intro ? <Intro onDone={() => setIntro(false)} /> : <OnboardingDialog />}
     </div>
   )
 }
@@ -112,11 +122,13 @@ function Loaded() {
     <NavProvider>
       <ProvidersProvider>
         <NoteDraftProvider>
-          <VoiceProvider>
-            <GestureProvider>
-              <Shell />
-            </GestureProvider>
-          </VoiceProvider>
+          <PanelProvider>
+            <VoiceProvider>
+              <GestureProvider>
+                <Shell />
+              </GestureProvider>
+            </VoiceProvider>
+          </PanelProvider>
         </NoteDraftProvider>
       </ProvidersProvider>
     </NavProvider>

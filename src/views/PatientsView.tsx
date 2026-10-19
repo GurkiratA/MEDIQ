@@ -12,6 +12,7 @@ import { useToast } from '../state/ToastContext'
 import { speak } from '../voice/tts'
 import { AllocationDialogs, type AllocationIntent } from './AllocationDialogs'
 import { EffectsTable } from './MedicationsView'
+import { ReportLaunchers } from '../reports/ReportLaunchers'
 
 const TAB_LABEL: Record<PatientTab, string> = {
   overview: 'Overview',
@@ -163,8 +164,9 @@ function PatientWorkspace({ patientId }: { patientId: string }) {
         </div>
       )}
 
+      <ReportLaunchers patientId={patient.id} compact className="mb-4" />
+
       <Tabs label="Patient workspace sections" tabs={tabs} value={nav.patientTab} onChange={(t) => nav.navigate({ patientTab: t })} />
-      <p className="mt-1 text-[11px] text-ink-faint">Tip: swipe a hand left/right (gestures on) or say “next tab” to move between sections.</p>
 
       <div role="tabpanel" id={`panel-${nav.patientTab}`} aria-labelledby={`tab-${nav.patientTab}`} className="mt-4 space-y-4">
         {nav.patientTab === 'overview' && <OverviewTab patient={patient} highlight={nav.focus} readAloud={readAloud} />}
