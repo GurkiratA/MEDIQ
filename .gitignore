@@ -1,0 +1,29 @@
+# Dependencies & build output
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Copied at install time from node_modules (see scripts/copy-vendor.mjs)
+public/vendor/
+
+# Test artifacts
+test-results/
+playwright-report/
+e2e/screenshots/
+
+# Secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
+npm-debug.log*
