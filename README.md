@@ -21,6 +21,16 @@ npm run dev          # web app + local API together
 
 Open **http://localhost:5173**. No API keys are needed: without them, MEDIQ runs on clearly labelled local deterministic fallbacks.
 
+### 🐳 Run Anywhere with Docker (Single Command)
+
+To run on any teammate's laptop without needing Node.js or dependency setup:
+
+```bash
+docker compose up --build
+```
+
+Open **http://localhost:5173**. Both the frontend SPA and backend API run together on port 5173.
+
 | Task | Command |
 |---|---|
 | Dev (web :5173 + API :8787) | `npm run dev` |

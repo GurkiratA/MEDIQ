@@ -1,0 +1,22 @@
+services:
+  mediq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mediq
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - MEDIQ_HOST=0.0.0.0
+      - MEDIQ_API_PORT=5173
+      - MEDIQ_DOCKER=true
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}
+      - DO_HERMES_BASE_URL=${DO_HERMES_BASE_URL:-}
+      - DO_HERMES_API_KEY=${DO_HERMES_API_KEY:-}
+      - DO_HERMES_MODEL=${DO_HERMES_MODEL:-NousResearch/Hermes-3-Llama-3.1-8B}
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped

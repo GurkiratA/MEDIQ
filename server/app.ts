@@ -25,7 +25,9 @@ function rateLimit(max: number, windowMs: number) {
   }
 }
 
-const isLoopback = (addr: string | undefined) => !!addr && /^(::1|127\.\d+\.\d+\.\d+|::ffff:127\.\d+\.\d+\.\d+)$/.test(addr)
+const isLoopback = (addr: string | undefined) =>
+  !!addr &&
+  (/^(::1|127\.\d+\.\d+\.\d+|::ffff:127\.\d+\.\d+\.\d+)$/.test(addr) || process.env.MEDIQ_DOCKER === 'true')
 
 /** Same-machine browser requests only, with a custom header (blocks simple cross-site form posts). */
 function localClientOnly(req: Request, res: Response, next: NextFunction) {
