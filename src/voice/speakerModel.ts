@@ -36,7 +36,9 @@ export const speakerModelStatus = {
   get: () => ({ state, error: lastError }),
   subscribe: (l: () => void) => {
     listeners.add(l)
-    return () => listeners.delete(l)
+    return () => {
+      listeners.delete(l)
+    }
   },
 }
 

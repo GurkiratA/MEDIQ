@@ -32,7 +32,9 @@ export const confirmBus = {
   get: () => pending,
   subscribe(l: () => void) {
     listeners.add(l)
-    return () => listeners.delete(l)
+    return () => {
+      listeners.delete(l)
+    }
   },
   /** Called by the gesture controller. Returns a human-readable outcome. */
   tryGestureConfirm(): 'confirmed' | 'no-dialog' | 'not-allowed' | 'not-reviewed' {

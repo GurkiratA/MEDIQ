@@ -25,6 +25,11 @@ export default tseslint.config(
     },
   },
   {
+    // Context modules intentionally export a Provider plus its hook.
+    files: ['src/state/**/*.tsx', 'src/**/*Context.tsx', 'src/layout/TopBar.tsx', 'src/views/EnrollmentWizard.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     files: ['**/*.{js,mjs}'],
     extends: [js.configs.recommended],
     languageOptions: { globals: { ...globals.node } },

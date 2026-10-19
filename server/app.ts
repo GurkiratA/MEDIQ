@@ -135,7 +135,6 @@ export function createApp(deps?: Deps) {
     app.get(/^(?!\/api\/).*/, (_req, res) => res.sendFile(join(dist, 'index.html')))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     const msg = err instanceof Error ? err.message : 'Internal error'
     res.status(500).json({ error: redact(msg) })

@@ -76,8 +76,8 @@ export class MicCapture {
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 1024
     source.connect(analyser)
-    let capture: MicCapture
-    const onChunk = (data: Float32Array) => capture.push(data)
+    const holder: { capture: MicCapture | null } = { capture: null }
+    const onChunk = (data: Float32Array) => holder.capture?.push(data)
     let node: AudioNode
     try {
       const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }))
@@ -98,8 +98,8 @@ export class MicCapture {
     mute.gain.value = 0
     node.connect(mute).connect(ctx.destination)
     if (ctx.state === 'suspended') await ctx.resume().catch(() => {})
-    capture = new MicCapture(stream, ctx, node, analyser)
-    return capture
+    holder.capture = new MicCapture(stream, ctx, node, analyser)
+    return holder.capture
   }
 
   get sampleRate() {
