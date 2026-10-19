@@ -1,3 +1,10 @@
+/**
+ * Pairwise same-/different-speaker cosine scores for the WeSpeaker models, using
+ * MEDIQ's own fbank front end and onnxruntime-web (WASM) — as in the browser.
+ * Usage: node --import tsx scripts/eval/pairwise.mts <dir>
+ *   <dir> must contain wespeaker_en_voxceleb_resnet34.onnx, wespeaker_en_voxceleb_CAM++.onnx
+ *   (sherpa-onnx release "speaker-recongition-models") and a clone of github.com/csukuangfj/sr-data.
+ */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import * as ort from 'onnxruntime-web'

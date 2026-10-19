@@ -1,3 +1,8 @@
+/**
+ * Genuine vs impostor scores on 1.0/1.5/2.0/3.0 s clips against 2–3-clip enrollment
+ * centroids, with FRR/FAR at several thresholds. Used to choose the 0.50 default.
+ * Usage: node --import tsx scripts/eval/short-clips.mts <dir>   (same <dir> as pairwise.mts)
+ */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import * as ort from 'onnxruntime-web'

@@ -1,3 +1,8 @@
+/**
+ * Compares src/voice/fbank.ts against kaldi-native-fbank reference features.
+ * 1) python3 scripts/eval/ref_fbank.py <wav> <out.json>   (pip install kaldi-native-fbank numpy)
+ * 2) node --import tsx scripts/eval/compare-fbank.mts <out.json> [...]
+ */
 import { readFileSync } from 'node:fs'
 import { computeFbank } from '../../src/voice/fbank.ts'
 for (const f of process.argv.slice(2)) {

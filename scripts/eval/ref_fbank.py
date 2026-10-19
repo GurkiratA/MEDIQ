@@ -1,3 +1,4 @@
+# Reference Kaldi fbank (WeSpeaker settings) for validating src/voice/fbank.ts. See compare-fbank.mts.
 import sys, wave, json, numpy as np, kaldi_native_fbank as knf
 path, out = sys.argv[1], sys.argv[2]
 w = wave.open(path)
