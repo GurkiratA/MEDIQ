@@ -601,7 +601,7 @@ export default function App() {
     // wake it up.
     const intro = createSpeaker()
     speaker.current = intro
-    intro.say('My name is Mediq. Say “Hey Mediq” whenever you need me.')
+    intro.say('Hello, my name is Mediq. Say “Hey Mediq” whenever you need me.')
     void intro.end().then(() => {
       if (speaker.current === intro) speaker.current = null
     })
