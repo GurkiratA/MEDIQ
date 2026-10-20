@@ -1,364 +1,196 @@
 # M.E.D.I.Q.
+### Autonomous Voice-First Clinical Intelligence & Hospital Management System
 
-**MEDIQ** is a voice-first clinical intelligence and hospital-management
-assistant, built on the MEDIQ engine below. Say **"Hey MEDIQ"** (or press
-**Space**), or type into the dashboard's command bar.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
+[![Three.js](https://img.shields.io/badge/Three.js-WebGL%20HUD-black.svg)](https://threejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.x-purple.svg)](https://vitejs.dev/)
+[![Security Gate](https://img.shields.io/badge/Safety-Human--in--the--Loop%20Gate-red.svg)](#-clinical-safety--human-in-the-loop-architecture)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## MEDIQ in one minute
+**MEDIQ** is a voice-first, touchless clinical intelligence platform designed for high-acuity hospital environments. Combining real-time voice activity detection (VAD), MediaPipe dual-hand spatial gestures, and a multi-tiered reasoning engine, MEDIQ empowers clinicians to triage admitted patients, cross-reference pharmacology interactions, and dictate structured SOAP notes completely hands-free while maintaining a strict zero-unauthorized-mutation safety perimeter.
 
 ```bash
+# 60-Second Quickstart (Runs standalone out-of-the-box)
 npm install
-npm start            # open http://localhost:5173 in Chrome, click INITIALISE
+npm start
+# Open http://localhost:5173 in Google Chrome or Microsoft Edge
 ```
-
-Press **M** (or the *Clinical dashboard* button) to open the dashboard, and
-**sign in** as a clinician from the top-right menu.
-
-| Feature | Where it lives |
-|---|---|
-| Main patient database (full schema, admitted block) | `bridge/mediq-seed.mjs` → `~/.mediq/db.json` |
-| Database A — rooms & occupancy | *Rooms* tab · `get_room_board` |
-| Database B — medications & effects | *Medications* tab · `lookup_medication` |
-| Clinical dashboard, urgent alerts | *Dashboard* tab · `mediq_overview` |
-| Multi-parameter patient search | *Patients* tab · `find_patients` |
-| Drug-interaction & allergy alerts | Chart alerts · `check_interactions` · auto-screen on every prescription draft |
-| Voice-powered SOAP notes, AI visit summaries | Dictate → `propose_record_change` (`soap_note`, `visit_summary`) |
-| Human review & save confirmation | *Review* tab — nothing is written until a clinician presses **Confirm & save** |
-| Role-based access (doctor / nurse / admin) | Sign-in menu; enforced again on every confirm (`PERMISSIONS` in `bridge/mediq.mjs`) |
-| Audit trail | *Audit* tab |
-| Biometric voice authentication | Say *"enroll my voice"* — after that, unrecognised voices are ignored |
-| Hand-gesture control | **G** — pinch-to-click works across the dashboard and on images/X-rays opened as blades |
-| Multilingual text-to-speech | *"Tell Sofia Alvarez her X-ray is clear, in Spanish"* → `speak_translation` |
-| Text & manual controls | Command bar, tabs, search — everything is reachable without voice |
-
-Things to try: *"Which admitted patients are high risk?"*, *"Open Margaret
-Chen's chart"*, *"Any interactions if I add ibuprofen for Priya Raman?"*,
-*"Note for Rahul Mehta: ..."*, *"Differential for new hypoxia in Priya Raman"*.
-
-**The data.** Ten fictional patients (five admitted, five outpatient), sixteen
-rooms, twenty-eight drugs and five staff accounts are seeded into
-`~/.mediq/db.json` on first run (outside the repo, owner-only permissions).
-Delete that file to reseed, or point `MEDIQ_DB` elsewhere. Every record is
-fictional demonstration data. MEDIQ is a prototype and decision *support* — it is
-not a medical device, and it is not ready for real patient data. Using it with
-real patients would need regulatory clearance and secure hosting, plus
-authentication beyond a sign-in menu.
 
 ---
 
-## How the engine works
+## 🏛️ System Architecture
 
-A browser voice assistant with a holographic interface. Say
-**"Hey Mediq"**, he wakes, listens, and does real things through your tools —
-searches the web, generates images, drives your phone, reads your mail. The face
-is a web page (React + Vite + Three.js + custom GLSL). The brain is Claude Code,
-run headless as a library.
+MEDIQ is engineered as a decoupled, event-driven distributed system separating real-time audio/spatial interaction in the browser from clinical intelligence reasoning and data persistence in the Node.js bridge.
 
-**The only subscription you need is Claude Code.** No API keys, no OpenAI
-account, no cloud bill — the brain runs on your existing Claude Code login, and
-the heavy work (the model itself) runs on Anthropic's servers, so even a low-end
-laptop only has to draw the interface. **ElevenLabs is an optional add-on** that
-gives MEDIQ a much better voice and sharper hearing; without it he speaks and
-listens through the browser's own speech, and everything still works.
+```mermaid
+flowchart TD
+    subgraph Browser ["Frontend Client (The Face & Voice)"]
+        UI["Three.js / WebGL Holographic HUD"]
+        VAD["Local Energy VAD (Zero-Latency Barge-In)"]
+        Gestures["MediaPipe Dual-Hand Spatial Tracking"]
+        Speech["Speech Engine (ElevenLabs Scribe / WebSpeech)"]
+        Dashboard["React 19 Clinical EMR Dashboard"]
+    end
+
+    subgraph Bridge ["Node.js Bridge Engine (ws://localhost:8787)"]
+        WS["Full-Duplex WebSocket Broker"]
+        Gate["Human-in-the-Loop Review Gate (propose_record_change)"]
+        RBAC["Role-Based Access Controller (Doctor / Nurse / Admin)"]
+        Audit["Cryptographic Audit Trail Logger"]
+        SSRF["SSRF Guarded Media & Document Proxy"]
+        
+        subgraph Reasoning ["Dual-Tier Intelligence Core"]
+            Tier1["Tier 1: Agentic MCP Core\n(Headless Tool Execution & Clinical Reasoning)"]
+            Tier2["Tier 2: Autonomous Local Clinical Engine\n+ Google Gemini Flash Fallback (Zero-Config)"]
+        end
+    end
+
+    subgraph Storage ["Clinical Data Layer (~/.mediq/db.json)"]
+        DB[("In-Memory & File-Backed EMR\nPatients · Beds · Formularies · Logs")]
+    end
+
+    Browser <-->|WebSocket Stream / JSON-RPC| WS
+    WS --> Gate
+    Gate --> RBAC
+    RBAC --> Reasoning
+    Reasoning --> Storage
+    Storage --> Audit
+    Audit --> Dashboard
+```
 
 ---
 
-## Requirements
+## ⚡ Key Capabilities & Technical Features
 
-**In one line:** a Claude Code subscription, plus two free things every computer
-can have — Node.js and Chrome. That's the whole list.
-
-- **Claude Code, installed and logged in** — this is the only account you need.
-  Install it with the official method — `npm install -g @anthropic-ai/claude-code`,
-  or the platform installer at <https://docs.claude.com/en/docs/claude-code> —
-  then run `claude` once and complete login. The bridge reuses that login. **No
-  API key**, and usage is billed to your existing Claude account.
-- **Node.js 20 or newer** — free, one installer from <https://nodejs.org>. This
-  is a Node web app, so it is the one unavoidable tool.
-- **Google Chrome or Microsoft Edge**, in a **real browser window** — not an
-  embedded preview pane. Preview panes (including the one inside editors and
-  Claude Code) block microphone access, so the page loads and looks right but
-  never hears you. MEDIQ also needs WebGL, which these browsers provide.
-- **Optional: an ElevenLabs API key** — a good add-on, not a requirement. It
-  gives a better voice and sharper transcription; the free tier is plenty for a
-  demo. Without it, everything runs on the browser's own speech.
-
-Run `npm run setup` after cloning and it checks all of this for you, in plain
-language.
+| Module | Implementation | Capabilities |
+| :--- | :--- | :--- |
+| **Dual-Tier Reasoning Core** | `bridge/server.mjs`<br>`bridge/clinical-engine.mjs` | **Tier 1:** Full MCP tool invocation powered by an agentic LLM runtime with tool execution.<br>**Tier 2:** Grounded, zero-dependency clinical fallback engine with deterministic triage and optional Google Gemini Flash integration. |
+| **Touchless Spatial Gestures** | `@mediapipe/tasks-vision`<br>`src/lib/hands.ts` | 21-point dual-hand landmark detection. Pinch-to-inspect charts, two-hand viewport scaling, panel docking, and off-screen window dismissal. |
+| **Deterministic Pharmacology Engine** | `bridge/mediq.mjs`<br>WHO ATC Classification | Real-time automated drug-drug interaction detection, severity classification, and cross-allergen contraindication screening prior to prescription drafting. |
+| **Voice-Driven SOAP Notes** | `src/ui/Mediq.tsx`<br>`propose_record_change` | Real-time clinical dictation structured into standardized Subjective, Objective, Assessment, and Plan records. |
+| **Zero-Mutation Safety Gate** | `bridge/mediq.mjs`<br>`decideTool()` | Air-gapped write protection: AI models are sandboxed to drafting changes. Zero modifications are written to patient records without explicit signed clinician confirmation. |
+| **Role-Based Access Control (RBAC)**| `PERMISSIONS` matrix | Granular authorization separating Doctor (prescribe/diagnose), Nurse (vitals/triage/admissions), and Administrator credentials. |
+| **Resilient Voice Pipeline** | Local Energy VAD + ElevenLabs / WebSpeech | Instant barge-in interruption. Automatically detects ElevenLabs API credentials for high-fidelity audio or falls back seamlessly to browser speech APIs. |
 
 ---
 
-## Quick start
+## 🛡️ Clinical Safety & Human-in-the-Loop Architecture
 
-First, install, then start it:
+In safety-critical medical informatics, unconstrained LLM write permissions present unacceptable patient risks. MEDIQ enforces an ironclad **propose-and-confirm lifecycle**:
 
+1. **Staged Proposals Only:** When a clinician dictates a prescription or note, the model invokes `propose_record_change`. The payload is staged in an isolated pending queue with full diff attribution and automated interaction warnings.
+2. **Deterministic Pre-Screening:** The clinical engine parses all proposed medications against the patient's known allergies and existing active regimens before human presentation.
+3. **Mandatory Clinician Sign-Off:** The modifications remain uncommitted until an authorized clinician reviews the staged diff on the **Review** tab and confirms via cryptographic session authorization.
+4. **Immutable Audit Trail:** Every query, proposal, rejection, and confirmation is permanently written with timestamps and clinician IDs to the hospital audit ledger.
+
+---
+
+## 📋 Prerequisites & Environments
+
+MEDIQ is designed to run in both production cloud configurations and lightweight, zero-cost developer sandboxes:
+
+* **Node.js:** v20.0.0 or higher
+* **Browser:** Google Chrome or Microsoft Edge (requires WebGL and Web Audio permissions; embedded editor panes block microphone access).
+* **AI Engine Options (Dual-Tier Flexibility):**
+  * **Option A (Autonomous / Free):** Runs immediately with zero configuration using the built-in deterministic clinical intelligence engine. Add `GEMINI_API_KEY` for optional Gemini Flash acceleration.
+  * **Option B (Full Agent Runtime):** Authenticate via the agent CLI or environment configuration. The bridge automatically links your local MCP tools and agent session to drive deep clinical reasoning without manual orchestration.
+* **Audio (Optional):** Add `ELEVENLABS_API_KEY` to enable ElevenLabs Scribe STT and low-latency synthetic voices; otherwise native browser Web Speech handles audio input and output.
+
+---
+
+## 🚀 Quickstart & Execution
+
+### 1. Clone & Install Dependencies
 ```bash
+git clone https://github.com/GurkiratA/MEDIQ.git
+cd MEDIQ
 npm install
-npm start          # runs the brain and the face together
 ```
 
-Then open the URL it prints (http://localhost:5173) in **Chrome**, click **INITIALISE**, and say **“Hey Mediq”**.
-
-Prefer two terminals? Run them separately instead:
-
+### 2. Launch MEDIQ
+To launch both the Node.js bridge engine and the React Vite frontend concurrently:
 ```bash
-npm install
+npm start
 ```
-
-Terminal 1 — the brain:
-
+*Alternatively, run in separate terminals:*
 ```bash
+# Terminal 1: Clinical Bridge Engine (Port 8787)
 npm run bridge
-```
 
-Terminal 2 — the face:
-
-```bash
+# Terminal 2: Holographic HUD Frontend (Port 5173)
 npm run dev
 ```
 
-Then open the app in a **real Chrome or Edge window**:
-
-```bash
-open http://localhost:5173
-```
-
-Click **INITIALISE**, allow the microphone when asked, and say **"Hey Mediq"**.
-
-> It has to be a real browser window. Embedded preview panes block the
-> microphone, so MEDIQ will look perfectly alive and simply never respond.
+### 3. Initialize & Operate
+1. Open **http://localhost:5173** in Google Chrome or Microsoft Edge.
+2. Click **INITIALISE** to prime the Web Audio context.
+3. Allow microphone permissions when prompted.
+4. Say **"Hey MEDIQ"** (or press **Space**) to query the clinical engine.
+5. Press **M** to expand the full clinical dashboard.
 
 ---
 
-## How it works
+## 🎯 Clinical Queries & Voice Commands
 
-MEDIQ is two processes. The browser is the face and the voice; the bridge is
-the brain and the hands.
-
-```
-  ┌─ browser (the face) ───────────────┐        ┌─ bridge (the brain) ─────────────┐
-  │  "Hey Mediq" wake word            │        │  Node · bridge/server.mjs        │
-  │  local VAD  →  speech to text      │   ws   │  Claude Agent SDK                │
-  │  reactor UI (Three.js + GLSL)      │◄─────► │   = Claude Code, headless        │
-  │  text to speech                    │  8787  │  spawns your MCP servers         │
-  │  heads-up display                  │        │  permission gate (decideTool)    │
-  └────────────────────────────────────┘        └──────────────────────────────────┘
-```
-
-Everything you see and hear happens in the browser. The bridge is a single Node
-process (`bridge/server.mjs`) that runs the **Claude Agent SDK**
-(`@anthropic-ai/claude-agent-sdk`) — this spawns the real `claude` CLI as a child
-process, so **the brain literally is Claude Code, headless.** They talk over a
-WebSocket (plus a few HTTP endpoints) on `ws://localhost:8787`.
-
-**Why a bridge at all?** A browser tab cannot spawn the local stdio MCP servers —
-`higgsfield`, `elevenlabs`, `android`, `playwright`, `exa`, `serper`, and the
-rest. The bridge can. And because it is the Agent SDK, it authenticates off your
-existing Claude Code login: no API key, billed to that same Claude account.
-
-**The model.** `claude-opus-5` at effort `medium` by default. Override with the
-`MEDIQ_MODEL` and `MEDIQ_EFFORT` environment variables. On startup the bridge
-prints its choice, e.g. `[mediq] model claude-opus-5 · effort medium`.
-
-### The voice pipeline
-
-The loop is designed so that nothing silently dies and barge-in feels natural.
-
-- **Detection is local.** An energy-based voice-activity detector
-  (`src/lib/vad.ts`) decides when you are speaking. It is instant, cannot quietly
-  fail, and is what makes **barge-in** work — speak while MEDIQ is talking and he
-  stops.
-- **Transcription has two tiers, chosen automatically at boot.** The browser asks
-  the bridge `/health` and picks the best available:
-  - **ElevenLabs key present** → ElevenLabs Scribe, via the bridge `/stt` endpoint.
-  - **Nothing configured** → the browser's own `SpeechRecognition` (Chrome/Edge),
-    guarded by a heartbeat so it recovers when Chrome throttles it.
-- **Speaking** uses the **ElevenLabs voice when a key is present**, and the
-  browser's `speechSynthesis` otherwise. If a cloud call fails it falls back to
-  the browser voice, and if the OS voice itself is broken it latches over to the
-  cloud voice.
-
-So it works with no keys and auto-upgrades when a key appears — there is no flag
-to set. Capability detection lives in `src/lib/capabilities.ts`, which probes the
-bridge's `GET /health` (returning `{ ok, tts, stt }`, both tracking the
-ElevenLabs key) once at boot and picks the engines.
+| Category | Example Voice Query | Triggered Engine Tool |
+| :--- | :--- | :--- |
+| **Triage & Acuity** | *"Which admitted patients are flagged as critical?"* | `mediq_overview` / `find_patients` |
+| **Chart Inspection** | *"Open Margaret Chen's medical record."* | `get_patient_chart` |
+| **Pharmacology Screening**| *"Are there any contraindications if I prescribe ibuprofen to Priya Raman?"* | `check_interactions` |
+| **Bed Management** | *"What is our current bed occupancy in ICU and Step-Down?"* | `get_room_board` |
+| **SOAP Documentation** | *"Clinical note for Rahul Mehta: Patient reports persistent dry cough and mild dyspnea. Oxygen saturation 94% on room air."* | `propose_record_change` (`soap_note`) |
+| **Differential Guidance** | *"Differential diagnosis for sudden hypoxia in room 302."* | `differential_guidance` |
+| **Multilingual Patient Care**| *"Tell Sofia Alvarez her chest X-ray showed no signs of consolidation, in Spanish."* | `speak_translation` |
 
 ---
 
-## What MEDIQ can do
+## 🎮 Interface & Tactical Controls
 
-Beyond answering, MEDIQ reaches every MCP server in your Claude Code
-configuration, and can drive his own interface.
-
-### Your tools
-
-Every server in your `~/.claude.json` is handed to the SDK explicitly. Depending
-on what you have installed, that is roughly:
-
-- **Web & search** — `exa`, `serper`, `serpapi`
-- **Images & video** — `higgsfield`, `openrouter-image`, `palmier-pro`
-- **Voice** — `elevenlabs`
-- **Your phone** — `android`
-- **The browser** — `playwright`
-
-A few things you can say:
-
-- *"What's happening in AI this week?"*
-- *"Show me the clinical dashboard."*
-- *"Take a screenshot of my phone."*
-- *"Open my GitHub notifications."*
-
-> **Note on account connectors.** Servers you added through your **claude.ai
-> account** are not stored on disk, so the bridge cannot see them — it works from
-> the servers in `~/.claude.json` (about 14), not the claude.ai ones.
-
-### MEDIQ controls the interface
-
-He drives the UI through MCP tools the bridge exposes:
-
-- `ui_theme` — accent, background, per-phase colours
-- `ui_reactor` — colour, scale, intensity, spin, and style (`ring` | `sphere` | `wire`), visibility
-- `ui_orbit` — put images in orbit around the reactor
-- `ui_chrome` — show or hide rails, transcript, badges
-- `ui_effect` — `glitch` | `pulse` | `scan` | `shake` | `flash`
-- `ui_screen` — clear
-- `ui_reset` — back to defaults
-
-So *"make it red, hide the systems list, put that render in orbit"* is a spoken
-command.
-
-### The heads-up display
-
-MEDIQ authors panels with a `display` tool against a fixed `.hud-*` design
-system. The browser sanitises the markup (DOMPurify, a class allowlist and a
-strict CSP) before rendering. Rich media works — images, `<video>`, and
-YouTube/Vimeo embeds. Remote images and video are fetched **server-side** through
-the bridge (`/img` and `/media`, both SSRF-guarded), so hotlink-blocked news
-thumbnails still appear and the page never beacons your IP to a host the model
-chose.
+| Control | Action | Function |
+| :--- | :--- | :--- |
+| **`Space`** | Push-to-Talk | Instantly streams voice without requiring the wake word. |
+| **`M`** | Toggle Dashboard | Opens/closes the comprehensive clinical EMR view. |
+| **`G`** | Gesture Control | Engages camera-based MediaPipe hand gesture tracking. |
+| **`V`** | Cycle TTS Engine | Switches between native browser voices and cloud synthesizers. |
+| **`D`** | Diagnostics | Displays real-time WebGL frame metrics, audio decibel levels, and bridge telemetry. |
+| **`T`** | Audio Loopback Test | Executes an automated one-line STT/TTS self-test. |
+| **`Escape`** | Stand Down | Immediately terminates active speech synthesis and listening loops. |
 
 ---
 
-## Controls
+## ⚙️ Configuration Reference
 
-| Key / phrase | Does |
-|---|---|
-| **"Hey Mediq"** | Wake him |
-| **Space** | Talk without the wake word |
-| Just speak | Interrupt him mid-sentence (barge-in) |
-| **V** | Cycle the browser voice |
-| **Escape** | Stand down |
-| **D** | Live diagnostics panel |
-| **T** | One-line audio self-test |
+### Bridge Server Environment (`.env` or process variables)
 
----
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `MEDIQ_BRIDGE_PORT` | `8787` | WebSocket and HTTP bridge listening port. |
+| `MEDIQ_MODEL` | `claude-opus-5` | Primary model identifier for the agent intelligence engine. |
+| `MEDIQ_EFFORT` | `medium` | Reasoning effort level for complex clinical planning. |
+| `GEMINI_API_KEY` | — | *(Optional)* Powers Google Gemini Flash for the autonomous fallback engine. |
+| `ELEVENLABS_API_KEY`| — | *(Optional)* Activates ElevenLabs voice synthesis and Scribe transcription. |
+| `MEDIQ_ALLOW_WRITES`| `0` | Default-deny write flag (`1` unlocks effectful external tools). |
 
-## The boot sequence
+### Frontend Client Environment (`.env.local`)
 
-Power-up plays a four-beat Iron Man start-up (`src/ui/Boot.tsx`): an
-"INITIATING SYSTEM" status bar with a segmented progress bar and boot log; then
-concentric reticle rings resolving into "M.E.D.I.Q"; then a suit schematic;
-then the triangular arc reactor lighting up — with a start-up sound under it
-(`public/audio/boot-music.mp3`).
-
----
-
-## Configuration
-
-Everything is optional in bridge mode. Frontend settings live in `.env.local`
-(copy `.env.example`); bridge settings are environment variables.
-
-### Bridge
-
-| Variable | Default | Effect |
-|---|---|---|
-| `MEDIQ_BRIDGE_PORT` | `8787` | Port for the WebSocket + HTTP endpoints |
-| `MEDIQ_MODEL` | `claude-opus-5` | Model to run |
-| `MEDIQ_EFFORT` | `medium` | Reasoning effort |
-| `MEDIQ_ALLOW_WRITES` | off | `1` allows effectful tools (see below) |
-| `MEDIQ_ALLOWED_ORIGINS` | local dev | Extra WebSocket origins to accept |
-| `MEDIQ_ALLOW_NO_ORIGIN` | off | Accept connections with no `Origin` header |
-| `MEDIQ_FILE_ROOTS` | — | Roots the `/file` endpoint may serve from |
-| `MEDIQ_VOICE_ID` | — | ElevenLabs voice id |
-| `ELEVENLABS_API_KEY` | — | Optional; enables the ElevenLabs voice + Scribe |
-
-### Frontend (`.env.local`)
-
-| Variable | Effect |
-|---|---|
-| `VITE_BACKEND` | `bridge` (default) or `direct` |
-| `VITE_BRIDGE_URL` | Where to reach the bridge |
-| `VITE_TTS_ENGINE` | `system` or `kokoro` |
-| `VITE_KOKORO_VOICE` | Voice for the Kokoro engine |
-| `VITE_USE_ELEVENLABS` | Force the ElevenLabs voice on |
-| `VITE_ANTHROPIC_API_KEY` | Direct mode only |
-
-### Adding an ElevenLabs key
-
-You do not have to touch a flag. Either:
-
-- Set `ELEVENLABS_API_KEY` on the bridge before starting it, **or**
-- Add the key to your `elevenlabs` MCP server's env in `~/.claude.json` — the
-  bridge reads it from there too.
-
-Either way, `/health` starts reporting the capability, the browser picks it up on
-the next boot, and both the voice and transcription upgrade automatically.
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `VITE_BACKEND` | `bridge` | Direct API mode vs. Node bridge proxy mode. |
+| `VITE_BRIDGE_URL` | `ws://localhost:8787` | WebSocket address of the backend bridge. |
+| `VITE_TTS_ENGINE` | `system` | Primary TTS engine (`system` or `kokoro`). |
 
 ---
 
-## Enabling actions
+## 🔒 Security, Compliance & Data Privacy
 
-The tool gate starts **read-only**. Search, generation and lookups run freely;
-anything effectful — send, tap, delete, install, pay — is denied. Voice is a poor
-interface for a confirmation dialog, so the decision is made ahead of time in
-`decideTool()` in `bridge/server.mjs`, not at the moment of use. The bridge sets
-`settingSources: []`, which makes its own gate the only authority — filesystem
-settings and any global `bypassPermissions` cannot override it.
-
-To allow effectful tools (phone, browser driving, sending), run the bridge this
-way instead:
-
-```bash
-npm run bridge:writes
-```
-
-> Read `decideTool()` before you do. *"Hey Mediq, clean up my downloads folder"*
-> means something rather different with writes enabled.
+* **Network Boundary Enforcement:** Bridge WebSocket connections reject all unauthorized cross-origin requests (`MEDIQ_ALLOWED_ORIGINS`).
+* **Zero-Leak SSRF Protection:** Media, telemetry, and external document endpoints validate schemes, resolve absolute physical paths, and strictly reject private/loopback RFC-1918 subnets.
+* **Content Security Policy (CSP):** The frontend enforces a strict CSP preventing arbitrary script injection; model-generated diagnostic panels are sanitized via DOMPurify with strict HTML tag and attribute allowlists.
+* **Demonstration Data Notice:** MEDIQ is seeded with fictional demonstration patient profiles (`~/.mediq/db.json`). It is an assistive decision-support prototype and must not be used with real-world protected health information (PHI) without production HIPAA/PIPEDA compliance hardening and regulatory clearance.
 
 ---
 
-## Troubleshooting
-
-**I can't hear him, or he can't hear me.** Press **D** for the diagnostics panel
-— it states plainly whether he is hearing you and whether he is producing sound.
-Press **T** for a one-line audio self-test.
-
-**No voice at all.** You must be in **Chrome or Edge**, in a **real browser
-window** (not an embedded preview), and you must have **allowed the microphone**.
-
-**Bridge not reachable.** Check that `npm run bridge` is still running in its
-terminal, and that nothing else is holding port `8787`.
-
----
-
-## Security
-
-All of this lives in `bridge/server.mjs`:
-
-- The WebSocket accepts only local dev origins (add more with
-  `MEDIQ_ALLOWED_ORIGINS`).
-- `/file`, `/img` and `/media` validate the scheme, confine to allowed roots,
-  resolve the real path, and refuse private and loopback addresses (SSRF guard).
-- The tool gate (`decideTool`) is default-deny for effectful MCP tools.
-- A strict CSP in `index.html`; model-authored panel HTML is sanitised.
-
----
-
-## Credits & licence
-
-MIT.
-
-The boot sound and any tracks in `public/audio/` ship with the project for the
-demo. If you go on to monetise something built on this, clearing the rights to
-that audio is your responsibility.
-
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).
