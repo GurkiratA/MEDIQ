@@ -1,0 +1,214 @@
+.bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: var(--nav-h);
+  border-bottom: 1px solid transparent;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.bar[data-scrolled='true'] {
+  background: var(--bg);
+  border-bottom-color: var(--line);
+}
+
+/* Not while the menu is open: backdrop-filter would become the containing
+   block for the fixed menu panel and collapse it to the bar's height. */
+@supports (backdrop-filter: blur(1px)) {
+  .bar[data-scrolled='true']:not([data-open='true']) {
+    background: rgba(10, 11, 13, 0.8);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  font-weight: 500;
+}
+
+.monogram {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.mark:hover .monogram {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.wordmark {
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.links {
+  display: none;
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--text-2);
+  font-size: 0.92rem;
+  transition: color var(--dur) var(--ease);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-3);
+  transition: color var(--dur) var(--ease);
+}
+
+.link:hover,
+.link[aria-current='true'] {
+  color: var(--text);
+}
+
+.link[aria-current='true'] .num {
+  color: var(--accent);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.3rem;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur) var(--ease);
+}
+
+.link[aria-current='true']::after {
+  transform: scaleX(1);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0 0.25rem 0 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.burger {
+  position: relative;
+  width: 20px;
+  height: 10px;
+}
+
+.burger::before,
+.burger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--text);
+  transition: transform var(--dur) var(--ease), top var(--dur) var(--ease);
+}
+
+.burger::before {
+  top: 0;
+}
+
+.burger::after {
+  top: 8.5px;
+}
+
+.bar[data-open='true'] .burger::before {
+  top: 4.25px;
+  transform: rotate(45deg);
+}
+
+.bar[data-open='true'] .burger::after {
+  top: 4.25px;
+  transform: rotate(-45deg);
+}
+
+.panel {
+  position: fixed;
+  inset: var(--nav-h) 0 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  overflow-y: auto;
+}
+
+.panelList {
+  display: grid;
+  padding-block: var(--space-6);
+}
+
+.panelList li {
+  border-bottom: 1px solid var(--line);
+  animation: slide-in 420ms var(--ease) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+.panelList a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-stretch: 85%;
+}
+
+.panelList a span {
+  color: var(--accent);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (min-width: 760px) {
+  .links {
+    display: flex;
+    gap: 0.15rem;
+  }
+
+  .toggle,
+  .panel {
+    display: none;
+  }
+}

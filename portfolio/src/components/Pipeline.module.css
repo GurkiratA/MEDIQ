@@ -1,0 +1,180 @@
+.wrap {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.track {
+  position: relative;
+}
+
+.list {
+  display: grid;
+  gap: 0;
+}
+
+/* --- Shared step anatomy ------------------------------------------------- */
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-3);
+  align-content: start;
+  padding: 0 0 var(--space-5) var(--space-6);
+}
+
+.node {
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--text-3);
+  background: var(--bg);
+  transform: rotate(45deg);
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+
+.index {
+  color: var(--text-3);
+  font-size: 0.7rem;
+  padding-top: 0.2em;
+}
+
+.name {
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.detail {
+  grid-column: 2;
+  color: var(--text-3);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.step[data-gate] .node {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.step[data-gate] .name {
+  color: var(--accent);
+}
+
+.step:hover .node {
+  border-color: var(--accent);
+}
+
+/* Rail: vertical by default (mobile and the "vertical" variant) */
+.track::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.6em;
+  bottom: calc(var(--space-5) + 0.6em);
+  width: 1px;
+  background: var(--line-strong);
+}
+
+.signal {
+  position: absolute;
+  left: 2px;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(.is-in) > .track .signal {
+    animation: run-y 2.8s var(--ease) 0.4s 1 both;
+  }
+
+  .wrap:hover .signal {
+    animation: run-y 2.8s var(--ease) infinite;
+  }
+}
+
+@keyframes run-y {
+  0% {
+    opacity: 0;
+    top: 0.6em;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    top: calc(100% - var(--space-5) - 0.6em);
+  }
+}
+
+/* --- Horizontal variant on wider screens --------------------------------- */
+
+@media (min-width: 860px) {
+  [data-orientation='horizontal'] .list {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  }
+
+  [data-orientation='horizontal'] .step {
+    grid-template-columns: 1fr;
+    row-gap: 0.15rem;
+    padding: var(--space-5) var(--space-4) 0 0;
+  }
+
+  [data-orientation='horizontal'] .node {
+    top: -4px;
+  }
+
+  [data-orientation='horizontal'] .detail {
+    grid-column: 1;
+  }
+
+  [data-orientation='horizontal'] .track::before {
+    left: 0;
+    right: calc(100% / var(--n));
+    top: 0;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+
+  [data-orientation='horizontal'] .signal {
+    left: 0;
+    top: -2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.is-in)[data-orientation='horizontal'] .signal {
+      animation-name: run-x;
+    }
+
+    [data-orientation='horizontal']:hover .signal {
+      animation-name: run-x;
+    }
+  }
+}
+
+@keyframes run-x {
+  0% {
+    opacity: 0;
+    left: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    left: calc(100% - 100% / var(--n));
+  }
+}

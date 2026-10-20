@@ -1,0 +1,144 @@
+.hero {
+  position: relative;
+  min-height: max(640px, 100svh);
+  display: flex;
+  align-items: flex-end;
+  padding-top: calc(var(--nav-h) + var(--space-7));
+  padding-bottom: var(--space-9);
+  isolation: isolate;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-6);
+}
+
+.kicker {
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.6rem;
+  vertical-align: 0.1em;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.sep {
+  margin-inline: 0.5rem;
+  color: var(--text-3);
+}
+
+.name {
+  --step-hero: clamp(4.5rem, 0.75rem + 25vw, 9rem);
+  display: grid;
+  font-family: var(--font-display);
+  font-size: var(--step-hero);
+  font-weight: 700;
+  font-stretch: 78%;
+  line-height: 0.8;
+  letter-spacing: -0.055em;
+  margin-left: -0.05em;
+}
+
+.line {
+  display: block;
+  overflow: hidden;
+  /* room for ascenders and descenders inside the clipping line */
+  padding-block: 0.12em 0.06em;
+  margin-block: -0.12em -0.06em;
+}
+
+.first {
+  display: block;
+}
+
+/* Load-in motion is transform-only, so the text is never invisible: it
+   counts for first paint immediately and needs no JavaScript. */
+@media (prefers-reduced-motion: no-preference) {
+  .first,
+  .last {
+    animation: type-rise 900ms var(--ease) both;
+  }
+
+  .last {
+    animation-delay: 90ms;
+  }
+
+  .rise {
+    animation: nudge-up 900ms var(--ease) var(--delay, 0ms) both;
+  }
+}
+
+@keyframes type-rise {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+@keyframes nudge-up {
+  from {
+    transform: translateY(14px);
+  }
+}
+
+.last {
+  display: block;
+  padding-left: 0.62em;
+  color: var(--text-3);
+}
+
+@media (max-width: 560px) {
+  .last {
+    padding-left: 0.35em;
+  }
+}
+
+.copy {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 40rem;
+  margin-top: var(--space-4);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.intro {
+  color: var(--text-2);
+  max-width: 34rem;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 760px) {
+  .name {
+    --step-hero: clamp(4.2rem, 1.5rem + 13.5vw, 15rem);
+  }
+}
+
+@media (min-width: 1000px) {
+  .copy {
+    margin-left: auto;
+    margin-top: calc(var(--space-7) * -1.4);
+    max-width: 30rem;
+  }
+}

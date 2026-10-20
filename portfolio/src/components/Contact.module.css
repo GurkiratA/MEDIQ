@@ -1,0 +1,131 @@
+.contact {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.contact > :global(.wrap) {
+  position: relative;
+  z-index: 1;
+}
+
+.title {
+  margin-top: var(--space-6);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 1rem + 6.4vw, 7.5rem);
+  font-weight: 650;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  font-stretch: 82%;
+  max-width: 19ch;
+  text-wrap: balance;
+}
+
+.titleSub {
+  display: block;
+  margin-top: 0.12em;
+  color: var(--text-3);
+}
+
+.lede {
+  margin-top: var(--space-6);
+  max-width: 36rem;
+  color: var(--text-2);
+}
+
+.emailRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  margin-top: var(--space-7);
+  padding: var(--space-5) 0;
+  border-block: 1px solid var(--line-strong);
+}
+
+.email {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 0.6rem + 3.2vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat;
+  transition: background-size 400ms var(--ease);
+}
+
+.email:hover {
+  background-size: 100% 2px;
+}
+
+.copy {
+  margin-left: auto;
+  min-width: 7rem;
+  justify-content: center;
+}
+
+.socials {
+  display: grid;
+  margin-top: var(--space-5);
+}
+
+.social {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 60px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+  transition: color var(--dur) var(--ease), padding var(--dur) var(--ease);
+}
+
+.socialLabel {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.handle {
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social:hover {
+  color: var(--accent);
+  padding-left: var(--space-3);
+}
+
+.social:hover .socialArrow {
+  transform: translate(2px, -2px);
+}
+
+.socialArrow {
+  transition: transform var(--dur) var(--ease);
+}
+
+.sign {
+  margin-top: var(--space-8);
+  color: var(--text-3);
+}
+
+@media (max-width: 480px) {
+  .handle {
+    display: none;
+  }
+
+  .social {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .copy {
+    margin-left: 0;
+  }
+}
+
+.todos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+}
