@@ -1,0 +1,45 @@
+{
+  "id": "northfield-campus",
+  "name": "Northfield Campus — Lot A/B retrofit",
+  "site": {
+    "id": "northfield",
+    "name": "Northfield Campus parking district",
+    "description": "Fictional 2.4 ha campus block: a science building, two surface parking lots, a median strip and lawns, drained by three catch basins to a single outfall. Geometry and elevations are illustrative, not surveyed.",
+    "width_m": 200,
+    "height_m": 120,
+    "soil": "silt_loam",
+    "surfaces": [
+      {"id": "R1", "name": "Science Hall roof", "kind": "roof", "rect": {"x": 0, "y": 0, "width": 70, "height": 50}, "slope_pct": 1.0, "drains_to": "I1"},
+      {"id": "S1", "name": "Entrance plaza", "kind": "sidewalk", "rect": {"x": 0, "y": 50, "width": 70, "height": 15}, "slope_pct": 1.5, "drains_to": "I1"},
+      {"id": "L1", "name": "North quad lawn", "kind": "lawn", "rect": {"x": 70, "y": 0, "width": 130, "height": 30}, "slope_pct": 2.0, "drains_to": "I2"},
+      {"id": "P1", "name": "Parking Lot A", "kind": "parking", "rect": {"x": 70, "y": 30, "width": 130, "height": 45}, "slope_pct": 1.5, "drains_to": "I2"},
+      {"id": "L2", "name": "Median strip", "kind": "lawn", "rect": {"x": 70, "y": 75, "width": 130, "height": 8}, "slope_pct": 2.0, "drains_to": "I3"},
+      {"id": "P2", "name": "Parking Lot B", "kind": "parking", "rect": {"x": 70, "y": 83, "width": 130, "height": 37}, "slope_pct": 1.5, "drains_to": "I3"},
+      {"id": "L3", "name": "West lawn", "kind": "lawn", "rect": {"x": 0, "y": 65, "width": 70, "height": 55}, "slope_pct": 3.0, "drains_to": "I3"}
+    ],
+    "inlets": [
+      {"id": "I1", "name": "Plaza catch basin", "x": 66, "y": 60, "rim_elev_m": 100.4, "invert_elev_m": 98.9},
+      {"id": "I2", "name": "Lot A catch basin", "x": 196, "y": 70, "rim_elev_m": 100.3, "invert_elev_m": 98.8},
+      {"id": "I3", "name": "Median manhole", "x": 135, "y": 79, "rim_elev_m": 99.9, "invert_elev_m": 98.3}
+    ],
+    "outfall": {"id": "OF1", "name": "Creek outfall", "x": 198, "y": 118, "invert_elev_m": 97.8},
+    "pipes": [
+      {"id": "C1", "from_node": "I1", "to_node": "I3", "length_m": 72, "diameter_m": 0.375},
+      {"id": "C2", "from_node": "I2", "to_node": "I3", "length_m": 62, "diameter_m": 0.375},
+      {"id": "C3", "from_node": "I3", "to_node": "OF1", "length_m": 74, "diameter_m": 0.45}
+    ]
+  },
+  "costs": {"currency": "USD", "rain_garden_per_m2": 250, "permeable_pavement_per_m2": 150},
+  "constraints": {"budget": 250000, "max_intervention_area_m2": 3000},
+  "scenario": {"id": "design-storm", "name": "50 mm, 24 h SCS Type II", "pattern": "scs_type_ii", "depth_mm": 50},
+  "designs": [
+    {
+      "id": "D1",
+      "name": "Median rain garden + Lot B pavers",
+      "interventions": [
+        {"kind": "rain_garden", "id": "RG1", "rect": {"x": 85, "y": 76, "width": 60, "height": 6}, "contributing_surface_id": "P1", "captured_area_m2": 3600},
+        {"kind": "permeable_pavement", "id": "PP1", "rect": {"x": 80, "y": 95, "width": 50, "height": 20}, "runon_area_m2": 1000}
+      ]
+    }
+  ]
+}

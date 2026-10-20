@@ -1,0 +1,9 @@
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/runs/
+backend/*.db
+node_modules/
+.next/
+*.egg-info/
