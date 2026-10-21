@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { record } from '@/content/site'
 import { ArrowRight } from './Icons'
 import { filled, TodoNote } from './Todo'
@@ -27,10 +26,10 @@ export function Education() {
               <div className={styles.main}>
                 <h3 className={styles.title}>
                   {e.href ? (
-                    <Link href={e.href} className={styles.titleLink}>
+                    <a href={e.href} className={styles.titleLink}>
                       {e.title}
                       <ArrowRight />
-                    </Link>
+                    </a>
                   ) : (
                     e.title
                   )}

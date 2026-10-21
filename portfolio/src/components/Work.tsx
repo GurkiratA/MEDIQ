@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { projects, type Project } from '@/content/site'
 import { Diagram } from './Diagram'
 import { ArrowRight } from './Icons'
@@ -43,7 +42,7 @@ function Heading({ project, index, total, size = 'large' }: Props & { size?: 'la
         <span>{project.year}</span>
       </p>
       <h3 id={`${project.slug}-title`} className={styles.title} data-size={size}>
-        <Link href={`/work/${project.slug}/`}>{project.name}</Link>
+        <a href={`/work/${project.slug}/`}>{project.name}</a>
       </h3>
       <p className={styles.summary}>{project.summary}</p>
     </header>
@@ -52,10 +51,10 @@ function Heading({ project, index, total, size = 'large' }: Props & { size?: 'la
 
 function CaseLink({ project }: { project: Project }) {
   return (
-    <Link href={`/work/${project.slug}/`} className={`arrow-link ${styles.caseLink}`}>
+    <a href={`/work/${project.slug}/`} className={`arrow-link ${styles.caseLink}`}>
       Read the {project.name} case study
       <ArrowRight />
-    </Link>
+    </a>
   )
 }
 

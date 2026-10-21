@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Diagram } from '@/components/Diagram'
 import { ArrowLeft, ArrowRight } from '@/components/Icons'
@@ -164,10 +163,10 @@ export default async function CaseStudy({ params }: Params) {
   return (
     <article className={`wrap ${styles.page}`} aria-labelledby="case-title">
       <nav className={styles.crumbs} aria-label="Breadcrumb">
-        <Link href="/#work" className="arrow-link">
+        <a href="/#work" className="arrow-link">
           <ArrowLeft />
           All work
-        </Link>
+        </a>
         <span className="meta">
           Case study {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
         </span>
@@ -238,14 +237,14 @@ export default async function CaseStudy({ params }: Params) {
       </div>
 
       {next && next.slug !== project.slug ? (
-        <Link href={`/work/${next.slug}/`} className={styles.next}>
+        <a href={`/work/${next.slug}/`} className={styles.next}>
           <span className="meta">Next case study</span>
           <span className={styles.nextName}>
             {next.name}
             <ArrowRight size={28} />
           </span>
           <span className={styles.nextSummary}>{next.summary}</span>
-        </Link>
+        </a>
       ) : null}
 
     </article>

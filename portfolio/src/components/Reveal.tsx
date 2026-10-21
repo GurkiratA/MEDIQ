@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
 
 /**
  * Fades [data-reveal] elements in as they enter the viewport. The hidden
@@ -9,8 +8,6 @@ import { usePathname } from 'next/navigation'
  * content stays visible without JavaScript or with reduced motion.
  */
 export function Reveal() {
-  // Re-run on client-side navigation so case-study pages reveal too.
-  const pathname = usePathname()
   useEffect(() => {
     const els = document.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-in)')
     if (!('IntersectionObserver' in window)) {
@@ -29,6 +26,6 @@ export function Reveal() {
     )
     els.forEach((el) => io.observe(el))
     return () => io.disconnect()
-  }, [pathname])
+  }, [])
   return null
 }

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { projects, skills } from '@/content/site'
 import styles from './Skills.module.css'
 
@@ -38,9 +37,9 @@ export function Skills() {
                       {s.usedIn.map((slug, i) => (
                         <span key={slug}>
                           {i ? ', ' : ''}
-                          <Link href={`/work/${slug}/`} className="link">
+                          <a href={`/work/${slug}/`} className="link">
                             {nameOf.get(slug) ?? slug}
-                          </Link>
+                          </a>
                         </span>
                       ))}
                     </span>
