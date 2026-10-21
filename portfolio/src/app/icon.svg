@@ -1,8 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#0a0b0d"/>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M14 46c-4-9 0-22 10-27s25-3 28 7-3 22-15 24-19 4-23-4Z" stroke="#ece9e2" stroke-opacity=".35" stroke-width="2.5"/>
-    <path d="M21 41c-3-6 0-14 7-17s16-1 17 6-3 13-11 14-11 3-13-3Z" stroke="#ece9e2" stroke-opacity=".6" stroke-width="2.5"/>
-    <path d="M28 36c-1-4 1-7 5-8s7 1 7 4-2 6-6 6-5 1-6-2Z" stroke="#5fd4f4" stroke-width="3"/>
-  </g>
+  <rect width="64" height="64" rx="6" fill="#f6f3ec"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="3" fill="none" stroke="#15140f" stroke-width="1.5"/>
+  <text x="32" y="44" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" fill="#15140f" letter-spacing="-1">KS</text>
+  <rect x="14" y="50" width="36" height="2.5" fill="#2340b5"/>
 </svg>

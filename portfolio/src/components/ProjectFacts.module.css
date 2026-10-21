@@ -1,0 +1,38 @@
+.facts {
+  display: grid;
+  gap: var(--s-5);
+  font-size: var(--t-small);
+  line-height: 1.55;
+}
+
+.facts > div {
+  display: grid;
+  gap: var(--s-2);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+
+.muted {
+  color: var(--ink-2);
+}
+
+.stack {
+  color: var(--ink-2);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--s-5);
+  margin-block: -0.6rem;
+}
+
+.links :global(.arrow-link) {
+  color: var(--accent);
+}
+
+.links :global(.arrow-link:hover) {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}

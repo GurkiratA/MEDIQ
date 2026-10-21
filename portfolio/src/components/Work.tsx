@@ -1,175 +1,150 @@
-import Image from 'next/image'
+import Link from 'next/link'
 import { projects, type Project } from '@/content/site'
-import { ArrowOut } from './Icons'
-import { Pipeline } from './Pipeline'
-import { filled, isDev, TodoNote } from './Todo'
+import { Diagram } from './Diagram'
+import { ArrowRight } from './Icons'
+import { Plate } from './Plate'
+import { ProjectFacts } from './ProjectFacts'
 import styles from './Work.module.css'
 
-const number = (i: number) => String(i + 1).padStart(2, '0')
+const num = (i: number) => String(i + 1).padStart(2, '0')
 
 export function Work() {
   return (
-    <section id="work" className="section" aria-labelledby="work-title">
-      <div className="wrap">
-        <header className="section-head">
-          <p className="section-index mono" data-reveal>
-            <b>01</b> Selected work
-          </p>
-          <h2 id="work-title" className="section-title" data-reveal>
-            Things I’ve helped build <em>— and how they work.</em>
-          </h2>
-        </header>
+    <section id="work" className="section wrap" aria-labelledby="work-title">
+      <header className="section-head">
+        <p className="meta">
+          <b>01</b> Selected work
+        </p>
+        <h2 id="work-title" className="section-title" data-reveal>
+          Projects, with the reasoning <em>left in.</em>
+        </h2>
+      </header>
 
-        <ol className={styles.index} aria-label="Project index" data-reveal>
-          {projects.map((p, i) => (
-            <li key={p.slug}>
-              <a href={`#${p.slug}`} className={styles.indexRow}>
-                <span className="mono">{number(i)}</span>
-                <span className={styles.indexName}>{p.name}</span>
-                <span className={styles.indexKind}>{p.kind}</span>
-                <span className="mono">{p.year}</span>
-              </a>
-            </li>
-          ))}
-        </ol>
-
-        <div className={styles.projects}>
-          {projects.map((p, i) => (
-            <ProjectBlock key={p.slug} project={p} index={i} />
-          ))}
-        </div>
+      <div className={styles.list}>
+        {projects.map((p, i) => {
+          const Layout = p.layout === 'lead' ? Lead : p.layout === 'split' ? Split : Brief
+          return <Layout key={p.slug} project={p} index={i} total={projects.length} />
+        })}
       </div>
     </section>
   )
 }
 
-function ProjectBlock({ project, index }: { project: Project; index: number }) {
+type Props = { project: Project; index: number; total: number }
+
+function Heading({ project, index, total, size = 'large' }: Props & { size?: 'large' | 'small' }) {
   return (
-    <article id={project.slug} className={styles.project} data-layout={project.layout} aria-labelledby={`${project.slug}-title`}>
-      <header className={styles.head} data-reveal>
-        <p className={`${styles.meta} mono`}>
-          <span className={styles.num}>{number(index)}</span>
-          <span>{project.kind}</span>
-          <span>{project.year}</span>
-        </p>
-        <h3 id={`${project.slug}-title`} className={styles.name}>
-          {project.name}
-        </h3>
-        <p className={styles.tagline}>{project.tagline}</p>
-      </header>
+    <header className={styles.heading} data-reveal>
+      <p className="meta">
+        <span className={styles.num}>
+          {num(index)} / {num(total - 1)}
+        </span>
+        <span>{project.kind}</span>
+        <span>{project.year}</span>
+      </p>
+      <h3 id={`${project.slug}-title`} className={styles.title} data-size={size}>
+        <Link href={`/work/${project.slug}/`}>{project.name}</Link>
+      </h3>
+      <p className={styles.summary}>{project.summary}</p>
+    </header>
+  )
+}
 
-      {project.image ? <Shot project={project} /> : null}
+function CaseLink({ project }: { project: Project }) {
+  return (
+    <Link href={`/work/${project.slug}/`} className={`arrow-link ${styles.caseLink}`}>
+      Read the {project.name} case study
+      <ArrowRight />
+    </Link>
+  )
+}
 
-      <div className={styles.body}>
-        <div className={styles.story} data-reveal>
-          <Block title="The problem">
-            <p>{project.problem}</p>
-          </Block>
-          <Block title="What it does">
-            <p>{project.description}</p>
-          </Block>
-          <Block title="Worth noticing">
-            <ul className={styles.highlights}>
-              {project.highlights.map((h) => (
-                <li key={h}>{h}</li>
+/** The primary project: full-width plate, then a three-column spread. */
+function Lead({ project, index, total }: Props) {
+  const firstDecisions = project.decisions?.slice(0, 2) ?? []
+  return (
+    <article id={project.slug} className={styles.lead} aria-labelledby={`${project.slug}-title`}>
+      <Heading project={project} index={index} total={total} />
+
+      {project.cover ? (
+        <div className={styles.leadPlate}>
+          <Plate figure={project.cover} label={`Fig. ${num(index)}`} sizes="(min-width: 1440px) 1330px, 94vw" />
+        </div>
+      ) : null}
+
+      <div className={styles.spread}>
+        <div className={styles.col} data-reveal>
+          <h4 className="meta">The problem</h4>
+          <p>{project.problem}</p>
+        </div>
+        <div className={styles.col} data-reveal style={{ '--d': 1 } as React.CSSProperties}>
+          <h4 className="meta">The approach</h4>
+          {project.approach ? <p>{project.approach}</p> : null}
+          {firstDecisions.length ? (
+            <ul className={styles.notes}>
+              {firstDecisions.map((d) => (
+                <li key={d.title}>
+                  <strong>{d.title}.</strong> {d.body}
+                </li>
               ))}
             </ul>
-          </Block>
+          ) : null}
         </div>
-
-        <aside className={styles.facts} data-reveal aria-label={`${project.name} details`}>
-          <Facts project={project} />
+        <aside className={styles.colFacts} data-reveal style={{ '--d': 2 } as React.CSSProperties}>
+          <ProjectFacts project={project} />
         </aside>
       </div>
 
-      <Pipeline
-        steps={project.pipeline}
-        orientation={project.layout === 'split' ? 'vertical' : 'horizontal'}
-        label={`How ${project.name} fits together`}
-      />
+      <CaseLink project={project} />
     </article>
   )
 }
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+/** Diagram-led: architecture on one side, story on the other. */
+function Split({ project, index, total }: Props) {
   return (
-    <section className={styles.block}>
-      <h4 className="label">{title}</h4>
-      {children}
-    </section>
+    <article id={project.slug} className={styles.split} aria-labelledby={`${project.slug}-title`}>
+      <div className={styles.splitText}>
+        <Heading project={project} index={index} total={total} />
+        <div className={styles.splitBody} data-reveal>
+          <p>{project.problem}</p>
+          {project.decisions?.[0] ? (
+            <blockquote className={styles.pull}>
+              <p>{project.decisions[0].body}</p>
+            </blockquote>
+          ) : null}
+        </div>
+        <div data-reveal>
+          <ProjectFacts project={project} />
+        </div>
+        <CaseLink project={project} />
+      </div>
+      <div className={styles.splitFigure} data-reveal>
+        <Diagram steps={project.architecture} caption={`Fig. ${num(index)} — How ${project.name} fits together`} />
+      </div>
+    </article>
   )
 }
 
-function Facts({ project }: { project: Project }) {
-  const role = filled(project.role)
-  const links = project.links.filter((l) => filled(l.href))
-
+/** A smaller entry: text, screenshot and facts on one row. */
+function Brief({ project, index, total }: Props) {
   return (
-    <dl className={styles.factList}>
-      {role || isDev ? (
-        <div>
-          <dt className="label">My role</dt>
-          <dd>{role ?? <TodoNote value={project.role} />}</dd>
-        </div>
-      ) : null}
-      {project.credit ? (
-        <div>
-          <dt className="label">Credit</dt>
-          <dd className={styles.credit}>{project.credit}</dd>
-        </div>
-      ) : null}
-      <div>
-        <dt className="label">Built with</dt>
-        <dd>
-          <ul className={styles.stack}>
-            {project.stack.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-        </dd>
+    <article id={project.slug} className={styles.brief} aria-labelledby={`${project.slug}-title`}>
+      <div className={styles.briefText}>
+        <Heading project={project} index={index} total={total} size="small" />
+        <p className={styles.briefBody} data-reveal>
+          {project.approach}
+        </p>
+        <CaseLink project={project} />
       </div>
-      {links.length ? (
-        <div>
-          <dt className="label">Links</dt>
-          <dd className={styles.links}>
-            {links.map((l) => (
-              <a key={l.label} href={filled(l.href)!} target="_blank" rel="noopener noreferrer" className={styles.extLink}>
-                {l.label}
-                <span className="visually-hidden"> for {project.name} (opens in a new tab)</span>
-                <ArrowOut className="arrow" />
-              </a>
-            ))}
-          </dd>
+      {project.cover ? (
+        <div className={styles.briefPlate}>
+          <Plate figure={project.cover} label={`Fig. ${num(index)}`} sizes="(min-width: 1000px) 34vw, 94vw" />
         </div>
       ) : null}
-    </dl>
-  )
-}
-
-function Shot({ project }: { project: Project }) {
-  const img = project.image!
-  return (
-    <figure className={styles.shot} data-reveal>
-      <div className={styles.frame}>
-        <div className={`${styles.frameBar} mono`} aria-hidden="true">
-          <span className={styles.lights}>
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>{project.slug}</span>
-        </div>
-        <Image
-          src={img.src}
-          alt={img.alt}
-          width={img.width}
-          height={img.height}
-          sizes={project.layout === 'feature' ? '(min-width: 1360px) 1270px, 94vw' : '(min-width: 1000px) 620px, 94vw'}
-          className={styles.img}
-          loading="lazy"
-        />
-      </div>
-      <figcaption className={`${styles.caption} mono`}>{img.caption}</figcaption>
-    </figure>
+      <aside className={styles.briefFacts} data-reveal>
+        <ProjectFacts project={project} compact />
+      </aside>
+    </article>
   )
 }

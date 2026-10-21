@@ -1,6 +1,5 @@
-import { links, profile } from '@/content/site'
-import { ContourField } from './ContourField'
-import { ArrowDown, ArrowOut } from './Icons'
+import { links, profile, projects } from '@/content/site'
+import { ArrowDown, ArrowOut, ArrowRight } from './Icons'
 import { filled } from './Todo'
 import styles from './Hero.module.css'
 
@@ -9,49 +8,73 @@ export function Hero() {
   const resume = filled(links.resume)
 
   return (
-    <section className={styles.hero} aria-labelledby="hero-name">
-      <ContourField coordinates={`${profile.location} · ${profile.coordinates}`} />
+    <section className={`wrap ${styles.hero}`} aria-labelledby="hero-name">
+      <div className={`${styles.strip} meta`}>
+        <span>Portfolio</span>
+        <span>
+          {profile.field}, {profile.school}
+        </span>
+        <span className={styles.stripEnd}>Selected work, {projects[0]?.year}</span>
+      </div>
 
-      <div className={`wrap ${styles.inner}`}>
-        <p className={`${styles.kicker} mono ${styles.rise}`}>
-          <span className={styles.dot} aria-hidden="true" />
-          <span>{profile.role}</span>
-          <span className={styles.sep} aria-hidden="true">/</span>
-          <span>{profile.school}</span>
+      <h1 id="hero-name" className={styles.name}>
+        <span className={styles.nameLine}>{profile.name}</span>
+      </h1>
+
+      <div className={styles.body}>
+        <p className={`${styles.label} meta`} aria-hidden="true">
+          ¶ Approach
         </p>
 
-        <h1 id="hero-name" className={styles.name}>
-          <span className={styles.line}>
-            <span className={styles.first}>{profile.firstName}</span>
-          </span>
-          <span className={styles.line}>
-            <span className={styles.last}>{profile.lastName}</span>
-          </span>
-        </h1>
-
-        <div className={`${styles.copy} ${styles.rise}`} style={{ '--delay': '260ms' } as React.CSSProperties}>
+        <div className={styles.copy}>
           <p className={styles.headline}>{profile.headline}</p>
           <p className={styles.intro}>{profile.intro}</p>
-
           <div className={styles.actions}>
-            <a className="btn btn--primary" href="#work">
-              See the work
+            <a className="btn btn--solid" href="#work">
+              Selected work
               <ArrowDown />
             </a>
             {resume ? (
-              <a className="btn" href={resume} target="_blank" rel="noopener">
-                Résumé
+              <a className="btn btn--line" href={resume} target="_blank" rel="noopener">
+                Résumé (PDF)
                 <ArrowOut />
               </a>
             ) : null}
             {github ? (
-              <a className="btn" href={github} target="_blank" rel="noopener noreferrer">
+              <a className="btn btn--line" href={github} target="_blank" rel="noopener noreferrer">
                 GitHub
                 <ArrowOut />
+                <span className="visually-hidden"> (opens in a new tab)</span>
               </a>
             ) : null}
           </div>
         </div>
+
+        <nav className={styles.contents} aria-labelledby="contents-title">
+          <h2 id="contents-title" className="meta">
+            Contents
+          </h2>
+          <ol>
+            {projects.map((p, i) => (
+              <li key={p.slug}>
+                <a href={`#${p.slug}`} className={styles.entry}>
+                  <span className={styles.entryNum}>{String(i + 1).padStart(2, '0')}</span>
+                  <span className={styles.entryName}>{p.name}</span>
+                  <span className={`${styles.entryKind} meta`}>{p.kind}</span>
+                  <ArrowRight className={`arrow arrow--right ${styles.entryArrow}`} />
+                </a>
+              </li>
+            ))}
+            <li>
+              <a href="#about" className={styles.entry}>
+                <span className={styles.entryNum}>{String(projects.length + 1).padStart(2, '0')}</span>
+                <span className={styles.entryName}>About &amp; skills</span>
+                <span className={`${styles.entryKind} meta`}>Who’s building this</span>
+                <ArrowRight className={`arrow arrow--right ${styles.entryArrow}`} />
+              </a>
+            </li>
+          </ol>
+        </nav>
       </div>
     </section>
   )

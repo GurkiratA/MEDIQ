@@ -1,12 +1,14 @@
 /**
  * Everything personal on the site lives in this file.
  *
- * Edit text, links, projects and skills here; the components only read from
- * it. Anything wrapped in `todo('…')` is a placeholder: it is hidden on the
- * production build and shown as a dashed amber note while running `npm run dev`,
- * so the live site never displays an unfinished sentence and you can still
- * see what is left to fill in. Replace `todo('…')` with a plain string (or a
- * URL) once you have the real value.
+ * Edit text, links, projects and skills here; components only read from it.
+ * Anything wrapped in `todo('…')` is a placeholder: it is shown as a dashed
+ * note while running `npm run dev` and hidden on the production build, so the
+ * live site never displays an unfinished sentence. Replace `todo('…')` with a
+ * plain string (or URL) once you have the real value.
+ *
+ * Ground rule for this file: only write what can be verified — in a repo, in
+ * a project's own documentation, or by you.
  */
 
 export type Todo = { readonly todo: string }
@@ -23,49 +25,36 @@ export const isTodo = (value: unknown): value is Todo =>
 
 export const profile = {
   name: 'Krish Shah',
-  firstName: 'Krish',
-  lastName: 'Shah',
   initials: 'KS',
   role: 'Computer Science student & aspiring software engineer',
   school: 'University of Guelph',
-  location: 'Guelph, Ontario',
-  /** Guelph, ON — used by the hero's coordinate readout. */
-  coordinates: '43.54°N 80.25°W',
-  /** Short status line under the navigation. Set to null to hide it. */
-  status: 'Looking for software engineering internships' as string | null,
+  field: 'Computer Science',
 
-  headline: 'I like building software that shows its work.',
+  /** The hero headline. Keep it to one sentence. */
+  headline: 'I build software around a real problem, then make it show its working.',
   intro:
-    'I’m a Computer Science student at the University of Guelph. I like building things — hackathon projects, small tools, experiments — and I care most about the part where the software has to be right, not just look right.',
+    'I’m a Computer Science student at the University of Guelph. I spend my time on projects that have to hold up to a question — how much water does a rain garden actually catch, what should an assistant be allowed to write to a patient chart — and I care about the parts that make a tool trustworthy: clear assumptions, tests and honest limits.',
 
-  about: [
-    'I got into programming because I liked the moment a vague problem turns into something you can actually run. That still hasn’t worn off.',
-    'Most of what I build starts with a question I can’t answer by hand: which kind of counting problem is this? What does a clinician need to see before anything gets written to a chart?',
-    'The projects I’ve worked on keep circling the same idea: software people can check. A solver that shows the formula and the steps, not just a number. A clinical assistant that can draft changes but never save them without a person confirming. A simulator that accounts for where every litre of water goes.',
-    'Right now I’m focused on getting better at the fundamentals — data structures, testing, reading other people’s code — and on shipping more complete projects. I learn fastest by building, breaking and fixing things, so I’m always looking for teams and problems that let me do more of that.',
-  ],
-
-  /** Short "now" list in the About section. Keep these honest and current. */
-  now: [
-    'Studying Computer Science at the University of Guelph',
-    'Building projects at hackathons and on my own time',
-    'Learning to write code that is tested, readable and easy to hand over',
-  ],
+  about: {
+    lead: 'I like problems that are easy to state and hard to get right.',
+    body: [
+      'Most of what I’ve worked on so far started at hackathons or in small collaborations. That has taught me as much about scoping, splitting work and explaining a design as about any one language or framework.',
+      'The projects keep circling the same idea: software people can check. A solver that shows the formula and steps, not just a number. An assistant that drafts but never saves without a person confirming. A simulator that accounts for every litre of rain it was given.',
+      'Right now I’m working on fundamentals — data structures, testing, reading other people’s code well — and on finishing projects properly rather than just starting them.',
+    ],
+  },
 }
 
 // ---------------------------------------------------------------------------
-// Links — use real destinations only. Leave a todo() until you have one.
+// Links — real destinations only. A todo() link is simply not rendered.
 // ---------------------------------------------------------------------------
 
 export const links = {
   github: 'https://github.com/KRISH-01-code' as Maybe<string>,
   linkedin: todo('Add your LinkedIn URL, e.g. https://www.linkedin.com/in/your-handle') as Maybe<string>,
-  /** Taken from your Git commit history — change it if you prefer another inbox. */
+  /** From your Git commit history — change it if you prefer another inbox. */
   email: 'krishmshah1117@gmail.com' as Maybe<string>,
-  /**
-   * Put your PDF at public/resume.pdf and change this to '/resume.pdf'.
-   * While it is a todo, the "Résumé" buttons are hidden.
-   */
+  /** Put the PDF at public/resume.pdf and set this to '/resume.pdf'. */
   resume: todo('Add public/resume.pdf, then set this to "/resume.pdf"') as Maybe<string>,
 }
 
@@ -73,157 +62,265 @@ export const links = {
 // Projects
 // ---------------------------------------------------------------------------
 
-export type ProjectLayout = 'feature' | 'split' | 'compact'
+export type Figure = {
+  src: string
+  alt: string
+  width: number
+  height: number
+  caption: string
+}
 
-/** `gate: true` marks the step a person has to approve — drawn in the accent colour. */
-export type PipelineStep = { label: string; detail: string; gate?: boolean }
+export type Step = { label: string; detail: string; gate?: boolean }
+export type Note = { title: string; body: string }
 
 export type Project = {
   slug: string
   name: string
-  /** One line, shown in the index and as the card lede. */
-  tagline: string
+  /** One line for the index and cards. */
+  summary: string
   year: string
   kind: string
-  /** feature = full-width showcase · split = diagram beside text · compact = smaller row */
-  layout: ProjectLayout
-  problem: string
-  description: string
-  /** Your own role and contributions. Be specific; leave a todo() if unsure. */
+  /** Home-page treatment: lead (large), split (diagram beside text), brief (compact). */
+  layout: 'lead' | 'split' | 'brief'
   role: Maybe<string>
-  /** Shown verbatim under the project — use it to credit teammates and owners. */
+  /** Credit teammates and owners plainly. */
   credit?: string
-  highlights: string[]
-  /** Technologies verified against the project's code. */
   stack: string[]
-  /** How the system is put together, rendered as a flow diagram. */
-  pipeline: PipelineStep[]
-  image?: { src: string; alt: string; width: number; height: number; caption: string }
   links: { label: string; href: Maybe<string> }[]
+  cover?: Figure
+  /** Architecture drawn as a flow diagram; `gate` marks a human approval step. */
+  architecture: Step[]
+
+  /** Case study (rendered at /work/<slug>/). Every field is optional except problem. */
+  problem: string
+  constraints?: string[]
+  approach?: string
+  features?: string[]
+  decisions?: Note[]
+  challenges?: Maybe<Note[]>
+  limitations?: string[]
+  next?: Maybe<string[]>
+  lessons?: Maybe<string[]>
+  gallery?: Figure[]
+  /** Where the facts on the page come from. */
+  sources?: { label: string; href: string }[]
 }
+
+const RUNOFFLAB_SRC = 'https://github.com/rishikrrontala-bot/runofflab/tree/source'
 
 export const projects: Project[] = [
   {
     slug: 'runofflab',
     name: 'RunoffLab',
-    tagline: 'A rain experiment on real terrain: place rain gardens, rerun the same storm, compare.',
+    summary:
+      'A rainfall experiment on real LiDAR terrain: place rain gardens, replay the same storm, and compare where the water goes.',
     year: '2026',
-    kind: 'Hackathon · Environmental modelling',
-    layout: 'feature',
-    problem:
-      'Green infrastructure like rain gardens is usually planned before anyone can see how water will actually move across a site. RunoffLab asks a narrower, testable question: on one real park, how does ponding change if you add a few gardens and replay the exact same storm?',
-    description:
-      'A browser-based experiment built on public New Jersey LiDAR terrain at Mercer County Park. You set a hypothetical storm, run a baseline, place 16 × 16 m rain gardens on lawn, and repeat the storm to compare computed ponding on a target area. A water balance tracks rainfall, surface water, soil, garden storage, edge outflow and drainage into the lake, so every litre has a destination.',
-    role: todo('Describe your role on RunoffLab. The public repo credits Rishik Rontala — say what you contributed (team member, research, testing, design, demo…).'),
-    credit: 'Team project · public repository and contribution record by Rishik Rontala.',
-    highlights: [
-      'Local inertial shallow-water solver running in a Web Worker, so the interface stays responsive during a run',
-      'Same-storm comparison: baseline and garden scenarios are replayed side by side at the same simulated second',
-      'A full water balance instead of a single headline number',
-      '3D terrain view in Three.js, with a flat 2D map for phones and as a WebGL fallback',
-      'Assumptions and limitations stated in the interface: an experiment, not a flood forecast',
-    ],
-    stack: ['TypeScript', 'React', 'Three.js', 'Vite', 'Web Workers', 'Vitest', 'Playwright'],
-    pipeline: [
-      { label: 'LiDAR terrain', detail: 'NJ 10 ft DEM → 4 m grid' },
-      { label: 'Storm', detail: 'intensity · duration · drainage' },
-      { label: 'Solver', detail: 'local inertial, in a worker' },
-      { label: 'Gardens', detail: 'storage + infiltration' },
-      { label: 'Water balance', detail: 'every transfer accounted for' },
-    ],
-    image: {
-      src: '/projects/runofflab.webp',
-      alt: 'RunoffLab interface after a baseline run: storm controls on the left, a 3D aerial terrain model of Mercer County Park with simulated water depth in blue in the centre, and the computed peak ponded water of 23.5 cubic metres on the right.',
-      width: 1600,
-      height: 1000,
-      caption: 'Baseline run · 60 mm/h for 20 min · captured from the published build',
-    },
+    kind: 'Hackathon · Stormwater modelling',
+    layout: 'lead',
+    role: todo(
+      'Describe your role on RunoffLab. The public repo and its contribution record credit Rishik Rontala — state exactly what you contributed.',
+    ),
+    credit: 'Team project. Public repository and contribution record by Rishik Rontala.',
+    stack: ['TypeScript', 'React', 'Three.js', 'Vite', 'Web Workers', 'Vitest', 'Playwright', 'Python'],
     links: [
       { label: 'Live app', href: 'https://rishikrrontala-bot.github.io/runofflab/' },
-      { label: 'Source', href: 'https://github.com/rishikrrontala-bot/runofflab/tree/source' },
+      { label: 'Source code', href: RUNOFFLAB_SRC },
+    ],
+    cover: {
+      src: '/projects/runofflab-compare.webp',
+      alt: 'RunoffLab comparing two runs of the same storm on 3D aerial terrain of Mercer County Park: a baseline on the left and a run with three rain gardens on the right, with storm controls, garden toggles and results panels around them.',
+      width: 1600,
+      height: 1000,
+      caption: 'Same storm, two designs. Baseline on the left; three lawn gardens (G7, G11, G12) on the right.',
+    },
+    architecture: [
+      { label: 'Terrain', detail: 'NJ LiDAR DEM, 4 m grid' },
+      { label: 'Storm', detail: 'intensity, duration, drain time' },
+      { label: 'Solver', detail: 'local inertial, in a Web Worker' },
+      { label: 'Gardens', detail: 'storage + infiltration' },
+      { label: 'Accounting', detail: 'water balance per run' },
+    ],
+
+    problem:
+      'Rain gardens and other green infrastructure are usually argued for before anyone can see how water actually moves across a specific site. RunoffLab narrows that to a question a browser can answer: on one real park, how does ponding on a paved target change if a few gardens are added and the exact same storm is replayed?',
+    constraints: [
+      'One prepared site — Mercer County Park, New Jersey — on public 2014–2019 LiDAR, so results are local and reproducible rather than general.',
+      'It has to run in an ordinary browser, on a phone too, with no account or backend.',
+      'Every number on screen must come from the simulator, and every litre of rain needs a destination.',
+      'It is an experiment with stated assumptions, not a flood forecast or engineering design.',
+    ],
+    approach:
+      'Run a baseline storm, select legal lawn gardens within an area budget, then rerun the identical storm and scrub both histories at the same simulated second. A greedy search can propose a placement by trying every feasible garden with the real simulator and keeping the one that lowers the peak most.',
+    features: [
+      'Same-storm comparison of a baseline and a garden design, side by side in 3D or on a flat map',
+      'Water accounting table: rain, surface water, soil, gardens, boundary outflow, lake and residual',
+      'Greedy placement search that runs in the worker, reports progress and can be cancelled',
+      'Scenario export and import as JSON, so an experiment can be reproduced',
+      'Keyboard-operable garden toggles, a 2D fallback without WebGL and reduced-motion support',
+    ],
+    decisions: [
+      {
+        title: 'A faster solver, checked against a slower one',
+        body: 'The shipped solver uses the local inertial approximation of the shallow-water equations. On the default storm it matched an independent diffusive-wave formulation to within 0.21% on baseline ponding while running about 100× faster (0.67 s against 67 s).',
+      },
+      {
+        title: 'Simulating beyond the site boundary',
+        body: 'Testing showed the 256 m study site under-counted ponding at one target by about 18%, because runoff entered from up to 32 m past its edge. The computed domain was enlarged to 384 m, which matches a 512 m domain to within 0.0005%.',
+      },
+      {
+        title: 'Conservation as a hard check',
+        body: 'Across the 24 recorded evidence runs, the largest relative water-balance residual is 9.1 × 10⁻¹¹ — the accounting identity is something the app verifies, not assumes.',
+      },
+      {
+        title: 'Measuring total ponded volume',
+        body: 'An earlier objective counted water above a 2 cm threshold and moved 15% with grid resolution; total ponded volume is steadier, so it became the headline metric.',
+      },
+    ],
+    challenges: todo('Optional: a challenge you personally worked through on RunoffLab, in your own words.'),
+    limitations: [
+      'Curbs, inlets, pipes and culverts are not represented, and no field measurements validate the output.',
+      'Infiltration, soil storage and roughness are uniform user assumptions; rainfall is constant intensity.',
+      'Gardens are idealised basins — the ground is never reshaped — and “eligible lawn” is a classification from a 2015 aerial, not a soil survey.',
+      'On the default storm, the best three-garden designs reduce modelled peak ponding by about 4–13% depending on the target. That is a modelled effect, not evidence of avoided flooding.',
+      'A trained planner model was explored; on held-out terrain it performed about level with a simple downhill heuristic, and greedy simulator search beat both. The public site only shows recorded, clearly labelled model answers.',
+    ],
+    next: todo('Optional: what you would build or test next on RunoffLab.'),
+    lessons: todo('Optional: one or two things RunoffLab taught you.'),
+    gallery: [
+      {
+        src: '/projects/runofflab-chart.webp',
+        alt: 'Line chart of ponded water in the target over 30 simulated minutes. The baseline (dashed) peaks at about 23.5 cubic metres; the run with gardens (solid red) stays slightly lower throughout.',
+        width: 1200,
+        height: 468,
+        caption: 'Ponded water in the target over the 30-minute run: baseline dashed, with gardens solid.',
+      },
+      {
+        src: '/projects/runofflab-accounting.webp',
+        alt: 'Water accounting table comparing baseline and gardens: rain input 2,931.5 cubic metres in both, surface water, soil, water held in gardens (0 against 8.3), boundary outflow, into lake, and a residual of 0.00000.',
+        width: 540,
+        height: 860,
+        caption: 'Every destination for the rain, with a residual of zero.',
+      },
+    ],
+    sources: [
+      { label: 'RunoffLab source branch', href: RUNOFFLAB_SRC },
+      { label: 'EVIDENCE.md', href: 'https://github.com/rishikrrontala-bot/runofflab/blob/source/EVIDENCE.md' },
+      { label: 'LIMITATIONS.md', href: 'https://github.com/rishikrrontala-bot/runofflab/blob/source/LIMITATIONS.md' },
     ],
   },
   {
     slug: 'mediq',
     name: 'MEDIQ',
-    tagline: 'A voice-first clinical assistant that can draft changes but never save them on its own.',
+    summary:
+      'A voice-first clinical assistant prototype that can read and draft, but never saves a change without a clinician confirming it.',
     year: '2026',
     kind: 'Hackathon · Healthcare',
     layout: 'split',
+    role: todo('Describe what you built on MEDIQ — features, the dashboard, the clinical data model, the pitch.'),
+    credit: 'Hackathon team project, with Agamjyot Singh Anand. Repository by GurkiratA.',
+    stack: ['TypeScript', 'React', 'Vite', 'Three.js', 'Node.js', 'WebSockets', 'Claude Agent SDK', 'Zod', 'Zustand', 'MediaPipe'],
+    links: [{ label: 'Source code', href: 'https://github.com/GurkiratA/MEDIQ' }],
+    architecture: [
+      { label: 'Voice or text', detail: 'wake word, speech-to-text, command bar' },
+      { label: 'Browser', detail: 'React dashboard, Three.js interface' },
+      { label: 'Local bridge', detail: 'Node, WebSocket, Claude Agent SDK' },
+      { label: 'Proposal', detail: 'SOAP note, prescription, room move' },
+      { label: 'Clinician confirms', detail: 'role check, then audit log', gate: true },
+    ],
+
     problem:
-      'Clinicians lose time to charting and to hunting through records, and an AI that can write straight into a patient chart is a liability. MEDIQ explores a hands-free assistant that reads freely, drafts carefully, and leaves every decision with a person.',
-    description:
-      'Say “Hey MEDIQ” (or type) to search patients, open charts, check drug interactions and allergies, or dictate SOAP notes. The browser handles wake word, speech and a Three.js interface; a local Node bridge runs Claude through the Claude Agent SDK. The model can only propose record changes — they land in a review queue and are written only when a signed-in clinician presses Confirm, with role checks and an audit trail. All patient data is fictional.',
-    role: todo('Describe what you built on MEDIQ (e.g. which features, the dashboard, the clinical tools, the pitch).'),
-    credit: 'Hackathon team project · repository by GurkiratA, with Agamjyot Singh Anand.',
-    highlights: [
-      'Human-in-the-loop by design: the model proposes, a clinician confirms — there is no tool call that saves its own draft',
-      'Role-based permissions (doctor, nurse, admin) re-checked at the moment of confirmation',
+      'Clinicians lose time to charting and hunting through records, but an assistant that can write directly into a patient chart is a liability. MEDIQ explores a hands-free assistant that can read freely and draft carefully, while every change stays a human decision.',
+    constraints: [
+      'Built in a hackathon, so the scope had to fit a demo.',
+      'Demonstration data only: ten fictional patients, sixteen rooms, twenty-eight drugs and five staff accounts, stored outside the repository.',
+      'It is a prototype for decision support, not a medical device, and not ready for real patient data.',
+    ],
+    approach:
+      'Split the system in two. The browser is the face and voice; a local Node bridge runs Claude through the Claude Agent SDK and exposes the clinical tools. The model can read the records and propose changes, but proposals land in a review queue, and only a signed-in clinician pressing Confirm writes them.',
+    features: [
+      'Patient search, charts, a rooms board and a medication reference',
       'Drug-interaction and allergy screening on every prescription draft',
-      'Works without voice: command bar, tabs and search reach every feature',
-      'Hand-gesture control and multilingual text-to-speech',
+      'Dictated SOAP notes and visit summaries, drafted for review',
+      'Role-based permissions for doctors, nurses and admins, checked again at confirmation',
+      'An audit log of confirmed changes',
+      'Everything also reachable without voice, through the command bar, tabs and search',
     ],
-    stack: ['TypeScript', 'React', 'Vite', 'Three.js', 'Node.js', 'WebSockets', 'Claude Agent SDK', 'Zustand', 'MediaPipe'],
-    pipeline: [
-      { label: 'Voice / text', detail: 'wake word · VAD · speech-to-text' },
-      { label: 'Browser UI', detail: 'React + Three.js dashboard' },
-      { label: 'Node bridge', detail: 'WebSocket · Claude Agent SDK' },
-      { label: 'Proposal', detail: 'SOAP note, Rx, room move' },
-      { label: 'Clinician confirms', detail: 'role check · audit log', gate: true },
+    decisions: [
+      {
+        title: 'The model proposes; a person commits',
+        body: 'There is no tool the model can call to save its own draft. The confirm action arrives over the WebSocket from the dashboard, so the click — not the model — is the authoritative gate.',
+      },
+      {
+        title: 'Permissions checked at the moment of saving',
+        body: 'Role checks run again when a change is confirmed, against whoever is signed in, rather than trusting the role at the time the draft was made.',
+      },
+      {
+        title: 'Read-only by default',
+        body: 'The bridge starts with effectful tools denied and has to be started in a separate mode to allow them — a decision made ahead of time, because voice is a poor interface for confirmation dialogs.',
+      },
     ],
-    links: [{ label: 'Repository', href: 'https://github.com/GurkiratA/MEDIQ' }],
+    challenges: todo('Optional: a challenge you hit during the hackathon and how the team handled it.'),
+    limitations: [
+      'Needs a local Claude Code login to run the assistant; the public repository is not a hosted demo.',
+      'All data is fictional, and a real deployment would need regulatory clearance, secure hosting and real authentication.',
+    ],
+    next: todo('Optional: what you would build next on MEDIQ.'),
+    lessons: todo('Lessons learned on MEDIQ, in your own words.'),
+    sources: [{ label: 'MEDIQ repository and README', href: 'https://github.com/GurkiratA/MEDIQ' }],
   },
   {
     slug: 'discrete-solver',
     name: 'DiscreteSolver',
-    tagline: 'Type a combinatorics word problem; get the operation, the formula and the answer.',
+    summary: 'Type a combinatorics word problem; get the operation, the formula and the answer.',
     year: '2026',
     kind: 'Collaboration · Machine learning',
-    layout: 'compact',
-    problem:
-      'Combinatorics word problems are easy to misread — is order important, is repetition allowed, is it a circle? DiscreteSolver classifies the problem first, then shows the formula and working so the answer can be checked.',
-    description:
-      'A Flask web app that combines a TF-IDF + linear SVC classifier with a regex entity parser. It extracts n and r (including number words like “five”), routes the question to one of six operations — permutations, combinations, both with replacement, derangements and circular arrangements — and renders the formula and result with KaTeX.',
+    layout: 'brief',
     role: 'Co-developer — dataset curation and testing.',
     credit: 'Built with Soumya Patel.',
-    highlights: [
-      'Six combinatorial operations behind a single natural-language input',
-      'Labelled dataset of word problems used to train the classifier',
-      'pytest suite covering the math engine, solver service and Flask routes, run in GitHub Actions CI',
-      'Dockerfile and Compose setup for one-command local runs',
-    ],
     stack: ['Python', 'Flask', 'scikit-learn', 'pytest', 'KaTeX', 'Docker', 'GitHub Actions'],
-    pipeline: [
-      { label: 'Word problem', detail: 'free text' },
-      { label: 'Regex parser', detail: 'extracts n, r' },
-      { label: 'SVC classifier', detail: 'TF-IDF features' },
-      { label: 'Math engine', detail: 'exact integer result' },
-      { label: 'KaTeX', detail: 'formula + working' },
-    ],
-    image: {
+    links: [{ label: 'Source code', href: 'https://github.com/KRISH-01-code/discrete_solver' }],
+    cover: {
       src: '/projects/discrete-solver.webp',
-      alt: 'DiscreteSolver result card classifying a committee question as Combinations, with n equal to 10, r equal to 3, the formula n factorial over r factorial times n minus r factorial, and the answer 10 choose 3 equals 120.',
+      alt: 'DiscreteSolver result: the question is classified as Combinations, with n equal to 10, r equal to 3, the formula n factorial over r factorial times n minus r factorial, and the answer 10 choose 3 equals 120.',
       width: 1440,
       height: 840,
-      caption: '“A committee of 3 from 10 people” → Combinations → 120',
+      caption: '“A committee of 3 from 10 people” → Combinations → 120.',
     },
-    links: [{ label: 'Repository', href: 'https://github.com/KRISH-01-code/discrete_solver' }],
+    architecture: [
+      { label: 'Word problem', detail: 'free text' },
+      { label: 'Parser', detail: 'regex extracts n and r' },
+      { label: 'Classifier', detail: 'TF-IDF + linear SVC' },
+      { label: 'Math engine', detail: 'exact integer result' },
+      { label: 'KaTeX', detail: 'formula and working' },
+    ],
+
+    problem:
+      'Combinatorics word problems are easy to misread — does order matter, is repetition allowed, is it a circle? DiscreteSolver classifies the problem first, then shows the formula and working so the answer can be checked.',
+    approach:
+      'A Flask app combines a TF-IDF + linear SVC classifier, trained on a labelled dataset of word problems, with a regex parser that extracts n and r (including number words like “five”). The question is routed to one of six operations and the result is rendered with KaTeX.',
+    features: [
+      'Six operations: permutations and combinations (with and without replacement), derangements and circular arrangements',
+      'pytest suite for the math engine, solver service and Flask routes, run in GitHub Actions',
+      'Dockerfile and Compose setup for one-command local runs',
+    ],
+    limitations: [
+      'Classification depends on the training phrasing; unusual wording can be routed to the wrong operation.',
+    ],
+    sources: [{ label: 'DiscreteSolver repository and README', href: 'https://github.com/KRISH-01-code/discrete_solver' }],
   },
 ]
 
 // ---------------------------------------------------------------------------
-// Skills — each one points at the projects where it was actually used.
-// Add a skill by adding a line; `usedIn` takes project slugs (or leave it empty
-// for coursework / self-study).
+// Skills — each one names the projects where it was used. Leave `usedIn`
+// empty for things from coursework or self-study.
 // ---------------------------------------------------------------------------
 
 export type Skill = { name: string; usedIn: string[] }
-export type SkillGroup = { title: string; note: string; items: Skill[] }
+export type SkillGroup = { title: string; items: Skill[] }
 
 export const skills: SkillGroup[] = [
   {
     title: 'Languages',
-    note: 'What I write code in',
     items: [
       { name: 'Python', usedIn: ['discrete-solver'] },
       { name: 'TypeScript', usedIn: ['mediq', 'runofflab'] },
@@ -233,7 +330,6 @@ export const skills: SkillGroup[] = [
   },
   {
     title: 'Frameworks & libraries',
-    note: 'What I’ve built on',
     items: [
       { name: 'React', usedIn: ['mediq', 'runofflab'] },
       { name: 'Flask', usedIn: ['discrete-solver'] },
@@ -243,8 +339,7 @@ export const skills: SkillGroup[] = [
     ],
   },
   {
-    title: 'Tools & practice',
-    note: 'How the work gets shipped',
+    title: 'Tools',
     items: [
       { name: 'Git & GitHub', usedIn: ['mediq', 'discrete-solver'] },
       { name: 'pytest', usedIn: ['discrete-solver'] },
@@ -254,62 +349,64 @@ export const skills: SkillGroup[] = [
     ],
   },
   {
-    title: 'Interested in',
-    note: 'Where I want to go deeper',
+    title: 'Concepts',
     items: [
-      { name: 'Software that people can verify', usedIn: [] },
-      { name: 'Applied machine learning', usedIn: [] },
-      { name: 'Tools for healthcare & the environment', usedIn: [] },
+      { name: 'Text classification', usedIn: ['discrete-solver'] },
+      { name: 'Automated testing & CI', usedIn: ['discrete-solver'] },
+      { name: 'Human-in-the-loop design', usedIn: ['mediq'] },
+      { name: 'Client–server over WebSockets', usedIn: ['mediq'] },
     ],
   },
 ]
 
 // ---------------------------------------------------------------------------
-// Education, experience & achievements — newest first.
-// Only add entries you can back up. `detail` may be a todo().
+// Education, experience & achievements — newest first. Only verified entries.
 // ---------------------------------------------------------------------------
 
-export type TimelineEntry = {
+export type Entry = {
   period: Maybe<string>
   title: string
   place: Maybe<string>
   detail: Maybe<string>
   tag: 'Education' | 'Hackathon' | 'Project' | 'Experience' | 'Award'
+  href?: string
 }
 
-export const timeline: TimelineEntry[] = [
+export const record: Entry[] = [
   {
-    period: todo('Add your program years, e.g. 2025 — 2029'),
+    period: todo('Program years, e.g. 2025 — 2029'),
     title: 'Computer Science',
     place: 'University of Guelph',
-    detail: todo('Add your degree (e.g. Bachelor of Computing) and, optionally, courses or clubs — only if true'),
+    detail: todo('Degree name (e.g. Bachelor of Computing) and, optionally, courses or clubs — only if true'),
     tag: 'Education',
   },
   {
     period: '2026',
     title: 'MEDIQ',
-    place: todo('Add the hackathon name'),
-    detail: 'Voice-first clinical assistant with a human-confirmation gate, built with a hackathon team.',
+    place: todo('Name of the hackathon'),
+    detail: 'Voice-first clinical assistant prototype with a human-confirmation gate.',
     tag: 'Hackathon',
+    href: '/work/mediq/',
   },
   {
     period: '2026',
     title: 'DiscreteSolver',
-    place: 'Collaboration with Soumya Patel',
+    place: 'With Soumya Patel',
     detail: 'Dataset curation and testing for an ML-backed combinatorics solver.',
     tag: 'Project',
+    href: '/work/discrete-solver/',
   },
 ]
 
 // ---------------------------------------------------------------------------
-// Navigation — ids must match the section ids on the page.
+// Navigation — ids must match the section ids on the home page.
 // ---------------------------------------------------------------------------
 
 export const sections = [
   { id: 'work', label: 'Work' },
   { id: 'about', label: 'About' },
   { id: 'skills', label: 'Skills' },
-  { id: 'path', label: 'Path' },
+  { id: 'education', label: 'Education' },
   { id: 'contact', label: 'Contact' },
 ] as const
 
@@ -319,16 +416,18 @@ export const sections = [
 
 export const site = {
   /**
-   * Your deployed URL, used for canonical links and social previews. Set
-   * NEXT_PUBLIC_SITE_URL (e.g. https://krishshah.dev) when you have a domain;
-   * on Vercel the production URL is picked up automatically.
+   * Deployed URL for canonical links and social previews. Set
+   * NEXT_PUBLIC_SITE_URL when you have a domain; on Vercel the production URL
+   * is picked up automatically.
    */
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
       : 'http://localhost:3000'),
-  title: 'Krish Shah — Software, shown working',
+  title: 'Krish Shah — Computer Science, University of Guelph',
   description:
-    'Krish Shah is a Computer Science student at the University of Guelph who builds software people can check: a clinical assistant, a rainfall simulator and an ML-backed math solver.',
+    'Portfolio of Krish Shah, a Computer Science student at the University of Guelph who builds software people can check: a stormwater experiment, a clinical assistant prototype and an ML-backed math solver.',
 }
+
+export const projectBySlug = (slug: string) => projects.find((p) => p.slug === slug)

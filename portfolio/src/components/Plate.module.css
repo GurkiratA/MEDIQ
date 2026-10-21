@@ -1,0 +1,30 @@
+.plate {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.mat {
+  padding: clamp(0.5rem, 0.2rem + 1vw, 1rem);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+}
+
+.img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.75rem;
+  align-items: baseline;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  max-width: 48rem;
+}
+
+.caption :global(.meta) {
+  color: var(--ink);
+}

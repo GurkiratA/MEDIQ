@@ -1,102 +1,64 @@
-'use client'
-
-import { useState } from 'react'
-import { links, profile } from '@/content/site'
-import { ContourField } from './ContourField'
-import { ArrowOut, Check, Copy, GitHub, LinkedIn } from './Icons'
+import { links } from '@/content/site'
+import { CopyEmail } from './CopyEmail'
+import { ArrowOut } from './Icons'
 import { filled, isDev, TodoNote } from './Todo'
 import styles from './Contact.module.css'
 
 export function Contact() {
   const email = filled(links.email)
-  const github = filled(links.github)
-  const linkedin = filled(links.linkedin)
-  const resume = filled(links.resume)
-  const [copied, setCopied] = useState(false)
-
-  const copy = async () => {
-    if (!email) return
-    try {
-      await navigator.clipboard.writeText(email)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2200)
-    } catch {
-      window.location.href = `mailto:${email}`
-    }
-  }
-
-  const socials = [
-    github && { label: 'GitHub', href: github, handle: github.replace(/^https?:\/\/(www\.)?/, ''), Icon: GitHub },
-    linkedin && { label: 'LinkedIn', href: linkedin, handle: linkedin.replace(/^https?:\/\/(www\.)?/, ''), Icon: LinkedIn },
-  ].filter(Boolean) as { label: string; href: string; handle: string; Icon: typeof GitHub }[]
+  const rows = [
+    { label: 'GitHub', href: filled(links.github) },
+    { label: 'LinkedIn', href: filled(links.linkedin) },
+    { label: 'Résumé (PDF)', href: filled(links.resume) },
+  ].flatMap((r) => (r.href ? [{ label: r.label, href: r.href }] : []))
 
   return (
-    <section id="contact" className={`section ${styles.contact}`} aria-labelledby="contact-title">
-      <ContourField coordinates={profile.coordinates} seed={23} />
-      <div className="wrap">
-        <p className="section-index mono" data-reveal>
+    <section id="contact" className="section wrap" aria-labelledby="contact-title">
+      <header className="section-head">
+        <p className="meta">
           <b>05</b> Contact
         </p>
+      </header>
 
+      <div className={styles.grid}>
         <h2 id="contact-title" className={styles.title} data-reveal>
-          Got a problem worth building for?
-          <span className={styles.titleSub}>I’d like to hear about it.</span>
+          If you’re hiring, building a team, or curious about a project — <em>write to me.</em>
         </h2>
 
-        <p className={styles.lede} data-reveal>
-          I’m looking for internships and teams where I can learn by shipping real things. If you’re hiring,
-          running a hackathon team, or just want to talk about one of these projects — email is the fastest way to
-          reach me.
-        </p>
+        <div className={styles.side} data-reveal style={{ '--d': 1 } as React.CSSProperties}>
+          <p className={styles.lede}>
+            Email is the most reliable way to reach me. The links below go to my code and profiles.
+          </p>
 
-        {email ? (
-          <div className={styles.emailRow} data-reveal>
-            <a href={`mailto:${email}`} className={styles.email}>
-              {email}
-            </a>
-            <button type="button" className={`btn ${styles.copy}`} onClick={copy}>
-              {copied ? <Check /> : <Copy />}
-              {copied ? 'Copied' : 'Copy'}
-              <span className="visually-hidden"> email address</span>
-            </button>
-            <span className="visually-hidden" role="status" aria-live="polite">
-              {copied ? 'Email address copied to clipboard' : ''}
-            </span>
-          </div>
-        ) : null}
-
-        <ul className={styles.socials} data-reveal>
-          {socials.map(({ label, href, handle, Icon }) => (
-            <li key={label}>
-              <a href={href} target="_blank" rel="noopener noreferrer" className={styles.social}>
-                <Icon />
-                <span className={styles.socialLabel}>{label}</span>
-                <span className={`${styles.handle} mono`}>{handle}</span>
-                <ArrowOut className={`arrow ${styles.socialArrow}`} />
-                <span className="visually-hidden"> (opens in a new tab)</span>
+          {email ? (
+            <div className={styles.email}>
+              <a href={`mailto:${email}`} className={styles.emailLink}>
+                {email.split('@')[0]}
+                <wbr />@{email.split('@')[1]}
               </a>
-            </li>
-          ))}
-          {resume ? (
-            <li>
-              <a href={resume} target="_blank" rel="noopener" className={styles.social}>
-                <span className={styles.socialLabel}>Résumé</span>
-                <span className={`${styles.handle} mono`}>PDF</span>
-                <ArrowOut className={`arrow ${styles.socialArrow}`} />
-              </a>
-            </li>
+              <CopyEmail email={email} />
+            </div>
           ) : null}
-          {isDev && (!linkedin || !resume) ? (
-            <li className={styles.todos}>
-              <TodoNote value={links.linkedin} />
-              <TodoNote value={links.resume} />
-            </li>
-          ) : null}
-        </ul>
 
-        <p className={`${styles.sign} mono`} data-reveal>
-          — {profile.name}, {profile.location}
-        </p>
+          <ul className={styles.rows}>
+            {rows.map((r) => (
+              <li key={r.label}>
+                <a href={r.href} target="_blank" rel="noopener noreferrer" className={styles.row}>
+                  <span>{r.label}</span>
+                  <span className={styles.url}>{r.href.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                  <ArrowOut />
+                  <span className="visually-hidden"> (opens in a new tab)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          {isDev ? (
+            <p className={styles.todos}>
+              <TodoNote value={links.linkedin} /> <TodoNote value={links.resume} />
+            </p>
+          ) : null}
+        </div>
       </div>
     </section>
   )

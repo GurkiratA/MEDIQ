@@ -1,74 +1,48 @@
 .grid {
   display: grid;
-  gap: var(--space-7);
+  gap: var(--s-7);
 }
 
-.head {
+.body p:first-child {
+  font-size: var(--t-lede);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.card {
   display: grid;
-  gap: var(--space-4);
   align-content: start;
+  font-size: var(--t-small);
 }
 
-.text {
+.card > div {
   display: grid;
-  gap: var(--space-5);
-  max-width: 40rem;
-  color: var(--text-2);
-  text-wrap: pretty;
+  gap: var(--s-1);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--rule);
 }
 
-.lead {
-  font-family: var(--font-display);
-  font-size: var(--step-2);
-  font-weight: 450;
+.card > div:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.card dd {
+  font-family: var(--serif);
+  font-size: 1.25rem;
   line-height: 1.3;
-  letter-spacing: -0.015em;
-  color: var(--text);
 }
 
-.now {
-  display: grid;
-  gap: var(--space-4);
-  align-content: start;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--line-strong);
-}
-
-.now ul {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.now li {
-  display: grid;
-  grid-template-columns: 0.9rem 1fr;
-  gap: var(--space-2);
-  font-size: 0.95rem;
-  color: var(--text-2);
-}
-
-.now li::before {
-  content: '→';
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  padding-top: 0.15em;
-}
-
-.place {
-  margin-top: var(--space-4);
-  color: var(--text-3);
-  line-height: 1.7;
-}
-
-@media (min-width: 1000px) {
+@media (min-width: 900px) {
   .grid {
-    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr);
-    column-gap: var(--space-8);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
   }
 
-  .now {
-    position: sticky;
-    top: calc(var(--nav-h) + var(--space-6));
+  .body {
+    grid-column: 4 / 9;
+  }
+
+  .card {
+    grid-column: 10 / 13;
   }
 }

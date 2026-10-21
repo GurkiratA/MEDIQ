@@ -1,22 +1,25 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
+import { Footer } from '@/components/Footer'
+import { Nav } from '@/components/Nav'
+import { Reveal } from '@/components/Reveal'
 import { profile, site } from '@/content/site'
 import './globals.css'
 
-const display = localFont({
-  src: '../fonts/BricolageGrotesque-wdth.woff2',
-  weight: '200 800',
-  style: 'normal',
-  variable: '--f-display',
+const serif = localFont({
+  src: [
+    { path: '../fonts/Newsreader-wght.woff2', weight: '200 800', style: 'normal' },
+    { path: '../fonts/Newsreader-wght-italic.woff2', weight: '200 800', style: 'italic' },
+  ],
+  variable: '--f-serif',
   display: 'swap',
-  declarations: [{ prop: 'font-stretch', value: '75% 100%' }],
-  adjustFontFallback: 'Arial',
+  adjustFontFallback: 'Times New Roman',
 })
 
-const body = localFont({
+const sans = localFont({
   src: '../fonts/Inter-wght.woff2',
   weight: '100 900',
-  variable: '--f-body',
+  variable: '--f-sans',
   display: 'swap',
   adjustFontFallback: 'Arial',
 })
@@ -27,12 +30,13 @@ const mono = localFont({
   variable: '--f-mono',
   display: 'swap',
   adjustFontFallback: false,
+  preload: false,
   fallback: ['ui-monospace', 'Menlo', 'Consolas', 'monospace'],
 })
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: site.title,
+  title: { default: site.title, template: `%s — ${profile.name}` },
   description: site.description,
   applicationName: profile.name,
   authors: [{ name: profile.name }],
@@ -63,8 +67,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0a0b0d',
-  colorScheme: 'dark',
+  themeColor: '#f6f3ec',
+  colorScheme: 'light',
 }
 
 // Marks the document as JS-capable before first paint, so reveal-on-scroll
@@ -73,7 +77,7 @@ const jsFlag = `document.documentElement.classList.add('js')`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: jsFlag }} />
       </head>
@@ -81,7 +85,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        {children}
+        <Nav />
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
+        <Footer />
+        <Reveal />
       </body>
     </html>
   )

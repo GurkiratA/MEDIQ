@@ -1,14 +1,11 @@
 import { About } from '@/components/About'
 import { Contact } from '@/components/Contact'
-import { Footer } from '@/components/Footer'
+import { Education } from '@/components/Education'
 import { Hero } from '@/components/Hero'
-import { Nav } from '@/components/Nav'
-import { Path } from '@/components/Path'
-import { Reveal } from '@/components/Reveal'
 import { Skills } from '@/components/Skills'
+import { filled } from '@/components/Todo'
 import { Work } from '@/components/Work'
 import { links, profile, site } from '@/content/site'
-import { filled } from '@/components/Todo'
 
 // schema.org Person, so search engines can connect the name to the profiles.
 const personJsonLd = {
@@ -24,18 +21,13 @@ const personJsonLd = {
 export default function Home() {
   return (
     <>
-      <Nav />
-      <main id="main" tabIndex={-1}>
-        <div id="top" />
-        <Hero />
-        <Work />
-        <About />
-        <Skills />
-        <Path />
-        <Contact />
-      </main>
-      <Footer />
-      <Reveal />
+      <div id="top" />
+      <Hero />
+      <Work />
+      <About />
+      <Skills />
+      <Education />
+      <Contact />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, '\\u003c') }}

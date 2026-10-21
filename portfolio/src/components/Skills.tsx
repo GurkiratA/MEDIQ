@@ -1,62 +1,57 @@
+import Link from 'next/link'
 import { projects, skills } from '@/content/site'
 import styles from './Skills.module.css'
 
-const projectName = new Map(projects.map((p) => [p.slug, p.name]))
+const nameOf = new Map(projects.map((p) => [p.slug, p.name]))
 
 export function Skills() {
   return (
-    <section id="skills" className="section" aria-labelledby="skills-title">
-      <div className="wrap">
-        <header className="section-head">
-          <p className="section-index mono" data-reveal>
-            <b>03</b> Skills
-          </p>
-          <h2 id="skills-title" className="section-title" data-reveal>
-            Tools, with receipts.
-          </h2>
-          <p className={styles.note} data-reveal>
-            Every tool here links to a project where it was actually used. No percentages or star ratings,
-            just where to see it.
-          </p>
-        </header>
+    <section id="skills" className="section wrap" aria-labelledby="skills-title">
+      <header className="section-head">
+        <p className="meta">
+          <b>03</b> Skills
+        </p>
+        <h2 id="skills-title" className="section-title" data-reveal>
+          What I’ve used, <em>and where.</em>
+        </h2>
+      </header>
 
-        <div className={styles.groups}>
-          {skills.map((group, gi) => (
-            <section
-              key={group.title}
-              className={styles.group}
-              data-reveal
-              style={{ '--reveal-delay': gi } as React.CSSProperties}
-              aria-labelledby={`skills-${gi}`}
-            >
-              <header className={styles.groupHead}>
-                <h3 id={`skills-${gi}`}>{group.title}</h3>
-                <p className="mono">{group.note}</p>
-              </header>
-              <ul className={styles.items}>
-                {group.items.map((skill) => (
-                  <li key={skill.name} className={styles.item}>
-                    <span className={styles.skill}>{skill.name}</span>
-                    {skill.usedIn.length ? (
-                      <span className={`${styles.used} mono`}>
-                        <span className="visually-hidden">Used in </span>
-                        {skill.usedIn.map((slug, i) => (
-                          <span key={slug}>
-                            {i > 0 ? ', ' : null}
-                            <a href={`#${slug}`} className="link">
-                              {projectName.get(slug) ?? slug}
-                            </a>
-                          </span>
-                        ))}
-                      </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+      <div className={styles.table}>
+        {skills.map((group, gi) => (
+          <section
+            key={group.title}
+            className={styles.row}
+            aria-labelledby={`skills-${gi}`}
+            data-reveal
+            style={{ '--d': gi } as React.CSSProperties}
+          >
+            <h3 id={`skills-${gi}`} className="meta">
+              {group.title}
+            </h3>
+            <ul className={styles.items}>
+              {group.items.map((s) => (
+                <li key={s.name}>
+                  <span className={styles.name}>{s.name}</span>
+                  {s.usedIn.length ? (
+                    <span className={styles.where}>
+                      <span className="visually-hidden">used in </span>
+                      {s.usedIn.map((slug, i) => (
+                        <span key={slug}>
+                          {i ? ', ' : ''}
+                          <Link href={`/work/${slug}/`} className="link">
+                            {nameOf.get(slug) ?? slug}
+                          </Link>
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
+      <p className={`${styles.note} meta`}>Each entry names the project where it was used — no ratings.</p>
     </section>
   )
 }

@@ -1,40 +1,45 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { profile, sections as NAV_ITEMS } from '@/content/site'
+import { usePathname } from 'next/navigation'
+import { profile, sections } from '@/content/site'
 import styles from './Nav.module.css'
 
 export function Nav() {
+  const pathname = usePathname()
+  const onHome = pathname === '/'
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [active, setActive] = useState<string | null>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Solid bar once the page has scrolled past the very top.
+  // Section links are plain anchors: hash-only on the home page (smooth
+  // scroll, no navigation), absolute from case-study pages.
+  const href = (id: string) => (onHome ? `#${id}` : `/#${id}`)
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => setScrolled(window.scrollY > 4)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Highlight the section currently in the middle of the viewport.
+  // Mark the section in the middle of the viewport (home page only).
   useEffect(() => {
-    const sections = NAV_ITEMS.map(({ id }) => document.getElementById(id)).filter(
-      (el): el is HTMLElement => el !== null,
-    )
+    if (!onHome) return
+    const els = sections.map(({ id }) => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
     const io = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id)
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id)
       },
       { rootMargin: '-45% 0px -50% 0px' },
     )
-    sections.forEach((el) => io.observe(el))
+    els.forEach((el) => io.observe(el))
     return () => io.disconnect()
-  }, [])
+  }, [onHome])
 
-  // Mobile menu: lock scroll, close on Escape, keep focus inside the panel.
+  // Mobile menu: lock scroll, trap focus, close on Escape or when widening.
   useEffect(() => {
     if (!open) return
     const panel = panelRef.current
@@ -49,9 +54,9 @@ export function Nav() {
         return
       }
       if (e.key !== 'Tab' || !panel || !toggle) return
-      const focusables = [toggle, ...panel.querySelectorAll<HTMLElement>('a')]
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
+      const items = [toggle, ...panel.querySelectorAll<HTMLElement>('a')]
+      const first = items[0]
+      const last = items[items.length - 1]
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault()
         last.focus()
@@ -60,9 +65,7 @@ export function Nav() {
         first.focus()
       }
     }
-    const onResize = () => {
-      if (window.innerWidth >= 760) setOpen(false)
-    }
+    const onResize = () => window.innerWidth >= 820 && setOpen(false)
     document.addEventListener('keydown', onKey)
     window.addEventListener('resize', onResize)
     return () => {
@@ -73,22 +76,17 @@ export function Nav() {
   }, [open])
 
   return (
-    <header className={styles.bar} data-scrolled={scrolled || open} data-open={open}>
+    <header className={styles.bar} data-scrolled={scrolled || open}>
       <nav className={`wrap ${styles.inner}`} aria-label="Primary">
-        <a href="#top" className={styles.mark} onClick={() => setOpen(false)}>
-          <span className={styles.monogram} aria-hidden="true">
-            {profile.initials}
-          </span>
-          <span className={styles.wordmark}>{profile.name}</span>
+        <a href={onHome ? '#top' : '/'} className={styles.mark} onClick={() => setOpen(false)}>
+          <span className={styles.name}>{profile.name}</span>
+          <span className={`meta ${styles.sub}`}>{profile.field}</span>
         </a>
 
         <ul className={styles.links}>
-          {NAV_ITEMS.map(({ id, label }, i) => (
+          {sections.map(({ id, label }) => (
             <li key={id}>
-              <a href={`#${id}`} className={styles.link} aria-current={active === id ? 'true' : undefined}>
-                <span className={styles.num} aria-hidden="true">
-                  0{i + 1}
-                </span>
+              <a href={href(id)} className={styles.link} aria-current={active === id ? 'true' : undefined}>
                 {label}
               </a>
             </li>
@@ -103,20 +101,17 @@ export function Nav() {
           aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="visually-hidden">{open ? 'Close menu' : 'Open menu'}</span>
-          <span className={styles.toggleLabel} aria-hidden="true">
-            {open ? 'Close' : 'Menu'}
-          </span>
-          <span className={styles.burger} aria-hidden="true" />
+          {open ? 'Close' : 'Menu'}
+          <span className="visually-hidden"> navigation</span>
         </button>
       </nav>
 
       <div id="mobile-menu" ref={panelRef} className={styles.panel} hidden={!open}>
         <ol className={`wrap ${styles.panelList}`}>
-          {NAV_ITEMS.map(({ id, label }, i) => (
+          {sections.map(({ id, label }, i) => (
             <li key={id} style={{ '--i': i } as React.CSSProperties}>
-              <a href={`#${id}`} onClick={() => setOpen(false)}>
-                <span className="mono">0{i + 1}</span>
+              <a href={href(id)} onClick={() => setOpen(false)}>
+                <span className="meta">{String(i + 1).padStart(2, '0')}</span>
                 {label}
               </a>
             </li>

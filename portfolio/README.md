@@ -4,19 +4,25 @@ A personal portfolio site, kept in its own folder inside this repository. It
 has nothing to do with the MEDIQ app around it and shares no code or
 dependencies with it.
 
-**Stack:** Next.js 16 (static export) · React 19 · TypeScript · plain CSS with
-design tokens and CSS Modules. No UI framework, no icon library, no analytics,
-no backend, no API keys.
+- **Home page:** hero, selected work, about, skills, education and contact.
+- **Case studies:** one page per project at `/work/<slug>/`.
+- **Stack:** Next.js 16 (static export), React 19, TypeScript, and plain CSS
+  with design tokens and CSS Modules. No UI kit, icon library, analytics,
+  backend, database or API keys.
+
+## Commands
 
 ```bash
 cd portfolio
 npm install
-npm run dev        # http://localhost:3000 (placeholders are visible here)
-npm run build      # static site written to ./out
-npm start          # serve ./out locally
+npm run dev         # http://localhost:3000 — placeholders are visible here
+npm run build       # static site → ./out
+npm start           # serve ./out locally
+npm run lint        # ESLint (next/core-web-vitals + TypeScript rules)
+npm run typecheck   # tsc --noEmit
 ```
 
-Checks: `npm run lint`, `npm run typecheck`, `npm run build`.
+There is no unit-test suite; `lint`, `typecheck` and `build` are the checks.
 
 ---
 
@@ -25,154 +31,143 @@ Checks: `npm run lint`, `npm run typecheck`, `npm run build`.
 Every word, link, project and skill on the site lives in **one file**:
 [`src/content/site.ts`](src/content/site.ts). Components only read from it.
 
-### Placeholders (`todo(...)`)
+### Placeholders: `todo('…')`
 
-Anything wrapped in `todo('…')` is a value still missing. Placeholders are:
+A value wrapped in `todo('…')` is something only you can fill in.
 
-- **shown** as dashed amber notes while you run `npm run dev`, so you can see
-  what's left to do;
-- **hidden** in the production build, so the live site never shows an
-  unfinished sentence.
+- During `npm run dev` it shows as a dashed amber note, so you can see what's
+  missing.
+- In the production build it is **hidden**. A case-study section whose
+  content is a todo is left out entirely, including from "On this page".
 
-Replace `todo('…')` with a plain string once you have the real value. These
-are the open ones right now:
+Replace `todo('…')` with a real string or array once you have it. Still open:
 
-| Where | What to add |
+| Field | What to add |
 |---|---|
 | `links.linkedin` | Your LinkedIn URL |
-| `links.resume` | Put the PDF at `public/resume.pdf`, then set this to `'/resume.pdf'`. The Résumé buttons appear automatically. |
-| `projects → runofflab → role` | Your role on RunoffLab (see the note below) |
-| `projects → mediq → role` | What you built on MEDIQ |
-| `timeline → Computer Science → period / detail` | Program years and degree name |
-| `timeline → MEDIQ → place` | The name of the hackathon |
+| `links.resume` | Put your PDF at `public/resume.pdf`, then set this to `'/resume.pdf'`. Résumé buttons appear on their own. |
+| `runofflab.role` | Your role. **Read the note below.** |
+| `mediq.role`, `mediq.lessons` | What you built, and what you learned |
+| `challenges`, `next`, `lessons` | Optional per project, in your own words |
+| `record` → Computer Science | Program years and degree name |
+| `record` → MEDIQ `place` | The hackathon's name |
 
-> **About RunoffLab.** The public repository
-> (`rishikrrontala-bot/runofflab`) and its contribution record credit
-> **Rishik Rontala** as the builder and do not mention other contributors.
-> The site credits Rishik on the project, and your role is a placeholder.
-> Describe your contribution accurately before you publish. If RunoffLab was
-> mainly Rishik's work, consider moving it out of the first position
-> (reorder the `projects` array).
+> **About RunoffLab.** The public repository and its contribution record
+> (`AI-USE.md`) credit **Rishik Rontala** and name no other contributors. The
+> site credits Rishik on the project and leaves your role blank. Describe your
+> contribution accurately before publishing. If you weren't substantially
+> involved, change its `layout` and move it down the `projects` array.
 
-### Profile & copy
+### Writing rules the content follows
 
-`profile` holds your name, role, school, the hero headline and intro, the
-About paragraphs, the "Right now" list, and the availability line.
-
-### Links
-
-`links.github`, `links.linkedin`, `links.email`, `links.resume`. Every button
-and footer link reads from here. A link that's still a `todo()` is simply not
-rendered, so there are no dead buttons.
-
-The email address comes from your Git commit history. Change it if you'd
-rather use another inbox (e.g. your `@uoguelph.ca` address).
+- Every technical claim in a project comes from its code or its own
+  documentation. Each case study lists its `sources`.
+- No invented roles, metrics, users or outcomes. RunoffLab's numbers are
+  modelled results, and the copy says so.
+- Read the About text and hero copy (`profile`) and rewrite anything that
+  doesn't sound like you.
 
 ### Adding a project
 
-Add an object to the `projects` array. Fields:
+Add an object to `projects`. The home page, hero contents, case-study route,
+sitemap and "next case study" link all update automatically.
 
-- `slug` — used for the `#anchor` and for linking skills to projects
-- `layout` — `'feature'` (full-width showcase), `'split'` (architecture
-  diagram beside the story) or `'compact'` (screenshot beside the story).
-  Mixing layouts keeps the page from turning into a grid of identical cards.
-- `problem`, `description`, `highlights`, `role`, `credit`
-- `stack` — only technologies you can point to in the code
-- `pipeline` — 3–6 steps describing how the system fits together. It's drawn
-  as a flow diagram; mark the step a person has to approve with `gate: true`.
-- `image` (optional) — put a real screenshot in `public/projects/` (WebP,
-  about 1600 px wide) and give its exact `width`/`height` so the page doesn't
-  shift while it loads.
-- `links` — repository, live demo, etc.
+- `layout`: `'lead'` (full-width image and three-column spread), `'split'`
+  (architecture diagram beside the story) or `'brief'` (compact row). Vary
+  them so the page doesn't repeat itself.
+- `architecture`: 3–6 `{ label, detail }` steps, drawn as a diagram. Add
+  `gate: true` to the step a person must approve.
+- Case-study fields (all optional except `problem`): `constraints`,
+  `approach`, `features`, `decisions`, `challenges`, `limitations`, `next`,
+  `lessons`, `gallery`, `sources`.
+- Images: put WebP screenshots in `public/projects/` (about 1600 px wide)
+  and give their real `width` and `height`, so the layout never shifts.
 
-The project index at the top of the Work section updates itself.
+### Skills, education, links
 
-### Skills
+- `skills`: groups of `{ name, usedIn }`. `usedIn` lists project slugs and
+  renders as links to those case studies. Leave it empty for coursework.
+- `record`: education, hackathons, projects, experience and awards, newest
+  first. Only add verifiable entries.
+- `links`: GitHub, LinkedIn, email and résumé. A link left as `todo()` is
+  never rendered, so there are no dead buttons. The email address comes from
+  your Git commit history; change it if you prefer another inbox.
 
-`skills` is a list of groups. Each skill has `usedIn: ['project-slug', …]`,
-which renders as links to the projects where you actually used it. Leave it
-empty (`[]`) for things you know from coursework or self-study.
+### Site URL
 
-### Education, experience & achievements
-
-`timeline` takes entries tagged `Education`, `Hackathon`, `Project`,
-`Experience` or `Award`, newest first. Only add things you can back up.
-
-### Site URL & social preview
-
-The canonical URL comes from `NEXT_PUBLIC_SITE_URL` (or Vercel's production
-URL automatically). Set it once you have a domain:
+Canonical URLs and social previews use `NEXT_PUBLIC_SITE_URL`. On Vercel,
+the production URL is picked up automatically.
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://your-domain.dev npm run build
 ```
 
-The social-share image is generated at build time from
-`src/app/opengraph-image.tsx`. The favicon is `src/app/icon.svg`.
+The share image is generated from `src/app/opengraph-image.tsx`, and the
+favicon is `src/app/icon.svg`.
 
 ---
 
 ## Deploying
 
-The build is a fully static site in `out/`.
+`npm run build` writes a fully static site to `out/`.
 
 - **Vercel:** import the repository and set **Root Directory** to
-  `portfolio`. The defaults work as-is.
+  `portfolio`. Nothing else needs configuring.
 - **Netlify / Cloudflare Pages:** base directory `portfolio`, build command
   `npm run build`, publish directory `portfolio/out`.
-- **GitHub Pages:** upload `out/`. If it's served from a sub-path
-  (`username.github.io/repo`), set `basePath` in `next.config.ts`.
+- **GitHub Pages:** publish `out/`. If it's served from a sub-path
+  (`user.github.io/repo`), set `basePath` in `next.config.ts` first.
 
 ---
 
-## How it's put together
+## Design notes
+
+**Direction.** Light and editorial: ivory paper (`#f6f3ec`), charcoal ink and
+one deep cobalt accent (`#2340b5`). Cobalt only appears on numbering, the
+human-approval step in diagrams, links and hover states. Fine rules, a 12-column
+grid, deliberate asymmetry, and almost no rounded corners. All tokens are at
+the top of `src/app/globals.css`.
+
+**Type.** Newsreader (serif) for the name, titles and pull quotes. Inter for
+reading and interface. JetBrains Mono for small metadata labels. Fonts are
+self-hosted through `next/font/local` with metric-matched fallbacks.
+
+**Signature.** The hero's "Contents" column: an index to the work, set like
+a magazine's contents page. Projects are labelled as figures ("Fig. 01"), and
+architecture is drawn as an ordered diagram rather than a stack of cards.
+
+**Motion.** Everything is short and optional:
+
+- the hero settles in with a transform only, so the text is never invisible;
+- sections fade up as they scroll into view;
+- screenshots are uncovered by a paper-coloured curtain;
+- links underline and turn cobalt on hover.
+
+With reduced motion or without JavaScript, everything simply shows.
+
+**Accessibility.**
+
+- Semantic landmarks and a single `h1` per page, with an ordered heading
+  hierarchy.
+- A skip link and visible focus outlines.
+- A mobile menu that traps focus and closes with Escape.
+- Descriptive link text and alt text on every image.
+- An `aria-live` confirmation when the email is copied.
+- Text contrast of at least 4.6:1 everywhere, and 44 px touch targets.
+
+## Project structure
 
 ```
 portfolio/
-├── public/projects/        real screenshots (WebP)
+├── public/projects/          real screenshots (WebP)
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx      fonts, metadata, <html>
-│   │   ├── page.tsx        section order + JSON-LD
-│   │   ├── globals.css     design tokens, base styles, reveal motion
-│   │   ├── icon.svg        favicon (a small contour mark)
-│   │   ├── opengraph-image.tsx
-│   │   ├── robots.ts, sitemap.ts
-│   ├── components/         one component (+ .module.css) per section
-│   ├── content/site.ts     ← all editable content
-│   └── fonts/              self-hosted Latin subsets (OFL)
+│   │   ├── layout.tsx         fonts, metadata, header/footer
+│   │   ├── page.tsx           home page section order
+│   │   ├── work/[slug]/       case-study pages (statically generated)
+│   │   ├── globals.css        design tokens, base styles, motion
+│   │   ├── icon.svg, opengraph-image.tsx, robots.ts, sitemap.ts
+│   ├── components/            one component (+ .module.css) per piece
+│   ├── content/site.ts        ← all editable content
+│   └── fonts/                 self-hosted font files (OFL)
 ```
-
-**Design.** Warm near-black, off-white type, one cyan accent. Bricolage
-Grotesque for headings, Inter for body text, JetBrains Mono for labels and
-measurements. The visual idea is a contour map: it nods to RunoffLab's
-terrain work and to how the site treats each project, as a system you can
-read. Colors, type scale, spacing and easing are tokens at the top of
-`globals.css`.
-
-**The hero terrain** (`components/ContourField.tsx`) traces contour lines
-with marching squares over a slowly drifting noise field. A mouse raises a
-hill under the cursor and tints nearby lines cyan, and a readout reports the
-field value there. It:
-
-- waits until the browser is idle before starting;
-- uses an adaptive grid and frame rate;
-- pauses when it's off screen or the tab is hidden;
-- draws a single still frame on touch screens and for visitors who prefer
-  reduced motion.
-
-The page doesn't need it: without JavaScript the hero is plain type.
-
-**Motion.** Hero type rises in with a CSS transform only, so the text is
-never invisible. Sections fade in on scroll, but only when JavaScript is
-running and reduced motion is off. Without either, everything is visible
-from the start.
-
-**Accessibility.** Semantic landmarks and headings, a skip link, visible
-focus rings, a focus-trapped mobile menu that Escape closes, an
-`aria-live` confirmation for "copy email", 44 px touch targets, and AA
-contrast for body text.
-
-**Fonts** are self-hosted through `next/font/local`, which preloads them and
-generates metric-matched fallbacks, so text doesn't jump when they arrive.
-Nothing on the page depends on a third-party CDN.
