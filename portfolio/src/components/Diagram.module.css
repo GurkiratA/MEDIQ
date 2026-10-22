@@ -1,0 +1,136 @@
+.figure {
+  --dg-bg: var(--paper-3);
+  --dg-fg: var(--ink);
+  --dg-muted: var(--ink-3);
+  --dg-line: var(--rule-strong);
+  --dg-gate: var(--tone, var(--accent));
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6) var(--s-5);
+  background: var(--dg-bg);
+  color: var(--dg-fg);
+  border-top: 3px solid var(--tone, var(--accent));
+}
+
+.figure[data-dark] {
+  --dg-bg: var(--tone, var(--cobalt-deep));
+  --dg-fg: var(--on-dark);
+  --dg-muted: rgba(243, 237, 226, 0.78);
+  --dg-line: rgba(243, 237, 226, 0.45);
+  --dg-gate: var(--on-dark);
+  border-top: 0;
+  padding: var(--s-6);
+}
+
+.figure :global(.meta) {
+  color: var(--dg-muted);
+}
+
+.list {
+  position: relative;
+  display: grid;
+}
+
+/* Vertical rail */
+.list::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 0.7rem;
+  bottom: 2.1rem;
+  width: 1px;
+  background: var(--dg-line);
+}
+
+.step {
+  position: relative;
+  display: grid;
+  align-content: start;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--s-3);
+  padding: 0 0 var(--s-5) var(--s-6);
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.node {
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--dg-fg);
+  background: var(--dg-bg);
+}
+
+.index {
+  padding-top: 0.2rem;
+}
+
+.label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.detail {
+  grid-column: 2;
+  color: var(--dg-muted);
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.step[data-gate] .node {
+  border-color: var(--dg-gate);
+  background: var(--dg-gate);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dg-gate) 25%, transparent);
+}
+
+.step[data-gate] .label {
+  color: var(--dg-gate);
+}
+
+.gateTag {
+  color: var(--dg-gate) !important;
+  border: 1px solid currentColor;
+  padding: 0 0.35rem;
+  font-size: 0.65rem;
+}
+
+@media (min-width: 900px) {
+  .figure[data-orientation='horizontal'] {
+    padding: var(--s-6);
+  }
+
+  [data-orientation='horizontal'] .list {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  }
+
+  [data-orientation='horizontal'] .list::before {
+    left: 0;
+    right: calc(100% / var(--n));
+    top: 5px;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+
+  [data-orientation='horizontal'] .step {
+    grid-template-columns: 1fr;
+    row-gap: 0.15rem;
+    padding: var(--s-5) var(--s-4) 0 0;
+  }
+
+  [data-orientation='horizontal'] .node {
+    top: 0;
+  }
+
+  [data-orientation='horizontal'] .detail {
+    grid-column: 1;
+  }
+}
