@@ -18,8 +18,8 @@ export default function OpengraphImage() {
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: '60px 72px',
-          background: '#f6f3ec',
-          color: '#15140f',
+          background: '#ece4d3',
+          color: '#17130d',
           fontFamily: 'serif',
         }}
       >
@@ -28,11 +28,11 @@ export default function OpengraphImage() {
             display: 'flex',
             justifyContent: 'space-between',
             paddingTop: 14,
-            borderTop: '2px solid #15140f',
+            borderTop: '2px solid #17130d',
             fontSize: 22,
             letterSpacing: 2,
             textTransform: 'uppercase',
-            color: '#6b6860',
+            color: '#635a4d',
           }}
         >
           <span>Portfolio</span>
@@ -42,8 +42,8 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 156, letterSpacing: '-0.04em', lineHeight: 0.95 }}>{profile.name}</div>
-          <div style={{ display: 'flex', width: 120, height: 4, background: '#2340b5', marginTop: 36 }} />
-          <div style={{ fontSize: 38, marginTop: 28, color: '#45433d', maxWidth: 900, lineHeight: 1.25 }}>
+          <div style={{ display: 'flex', width: 120, height: 4, background: '#1f3aa6', marginTop: 36 }} />
+          <div style={{ fontSize: 38, marginTop: 28, color: '#423c33', maxWidth: 900, lineHeight: 1.25 }}>
             {profile.headline}
           </div>
         </div>

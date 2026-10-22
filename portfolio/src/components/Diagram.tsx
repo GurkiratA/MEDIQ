@@ -6,15 +6,17 @@ type Props = {
   caption: string
   /** horizontal falls back to vertical on narrow screens */
   orientation?: 'horizontal' | 'vertical'
+  /** Light linework on the project's tone instead of on paper */
+  dark?: boolean
 }
 
 /**
  * A project's architecture as an ordered sequence of stages. Plain HTML, so
  * it reads correctly to screen readers and reflows on small screens.
  */
-export function Diagram({ steps, caption, orientation = 'vertical' }: Props) {
+export function Diagram({ steps, caption, orientation = 'vertical', dark = false }: Props) {
   return (
-    <figure className={styles.figure} data-orientation={orientation}>
+    <figure className={styles.figure} data-orientation={orientation} data-dark={dark || undefined}>
       <ol className={styles.list} style={{ '--n': steps.length } as React.CSSProperties}>
         {steps.map((step, i) => (
           <li key={step.label} className={styles.step} data-gate={step.gate || undefined}>

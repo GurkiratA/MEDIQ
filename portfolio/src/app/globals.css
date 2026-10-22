@@ -1,25 +1,33 @@
 /* ==========================================================================
    Design tokens
-   Ivory paper, charcoal ink, one cobalt accent used sparingly. Change the
-   values here and the whole site follows.
+   Warm parchment, charcoal ink and a deep cobalt, with one quieter colour per
+   project (clay, teal, plum). Change the values here and the site follows.
+   Contrast ratios are against --paper unless noted.
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  --paper: #f6f3ec;
-  --paper-2: #efebe1; /* recessed panels and figure mats */
-  --paper-3: #fbf9f4; /* raised surfaces */
-  --ink: #15140f;
-  --ink-2: #45433d; /* body copy — 8.9:1 on paper */
-  --ink-3: #6b6860; /* metadata  — 5.0:1 on paper, 4.7:1 on paper-2 */
-  --rule: rgba(21, 20, 15, 0.14);
-  --rule-strong: rgba(21, 20, 15, 0.5);
+  --paper: #ece4d3; /* parchment */
+  --paper-2: #e2d8c3; /* sand bands and recessed panels */
+  --paper-3: #f5efe3; /* raised cards, inner mats */
+  --ink: #17130d; /* 14.6:1 */
+  --ink-2: #423c33; /* body copy — 8.6:1 */
+  --ink-3: #635a4d; /* metadata — 5.4:1, 4.8:1 on paper-2 */
+  --rule: rgba(23, 19, 13, 0.16);
+  --rule-strong: rgba(23, 19, 13, 0.5);
 
-  --accent: #2340b5; /* deep cobalt — 7.7:1 on paper */
-  --accent-hover: #172d8a;
-  --accent-wash: rgba(35, 64, 181, 0.07);
-  --todo: #9a5b00;
+  --accent: #1f3aa6; /* cobalt — 7.5:1 */
+  --accent-hover: #142a7d;
+  --cobalt-deep: #172b7d; /* colour bands */
+  --on-dark: #f3ede2; /* text on cobalt/ink/teal — 10.7:1 on cobalt-deep */
+  --on-dark-2: #b9bfdc; /* secondary text on cobalt-deep — 6.9:1 */
+
+  /* Project tones */
+  --clay: #9c4119; /* 5.2:1 */
+  --teal: #1b5753; /* 6.6:1 */
+  --plum: #57397a; /* 7.3:1 */
+  --todo: #8a4f00;
 
   /* --f-* are set by next/font in layout.tsx (with metric-matched fallbacks) */
   --serif: var(--f-serif), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
@@ -332,7 +340,8 @@ ol {
   padding-top: var(--s-section);
 }
 
-.section:last-child {
+.section:last-child,
+.section:has(+ .band) {
   padding-bottom: var(--s-section);
 }
 
@@ -435,4 +444,92 @@ ol {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   Colour bands — full-width sections that break the page into chapters
+   ========================================================================== */
+
+.band {
+  position: relative;
+  isolation: isolate;
+  background: var(--band-bg);
+  color: var(--band-fg);
+}
+
+.band--sand {
+  --band-bg: var(--paper-2);
+  --band-fg: var(--ink);
+}
+
+/* Dark bands re-map the ink tokens so components inside just work */
+.band--cobalt,
+.band--ink {
+  --band-fg: var(--on-dark);
+  --ink: var(--on-dark);
+  --ink-2: var(--on-dark-2);
+  --ink-3: var(--on-dark-2);
+  --rule: rgba(243, 237, 226, 0.2);
+  --rule-strong: rgba(243, 237, 226, 0.55);
+  --accent: #f3ede2;
+  --accent-hover: #ffffff;
+}
+
+.band--cobalt {
+  --band-bg: var(--cobalt-deep);
+}
+
+.band--ink {
+  --band-bg: #17130d;
+  --on-dark-2: #b5ab9b; /* 8.4:1 on ink */
+  --ink-2: #b5ab9b;
+  --ink-3: #b5ab9b;
+}
+
+/* Contour artwork from scripts/contours.py */
+.band--art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('/art/contours-band.svg') center / cover no-repeat;
+  pointer-events: none;
+}
+
+/* Section header inside a band sits on the band's own top edge */
+.band > .section {
+  padding-bottom: var(--s-section);
+}
+
+.band .section-head {
+  border-top-color: var(--rule-strong);
+}
+
+/* Project tones as a single variable components can read */
+[data-tone='clay'] {
+  --tone: var(--clay);
+}
+
+[data-tone='teal'] {
+  --tone: var(--teal);
+}
+
+[data-tone='plum'] {
+  --tone: var(--plum);
+}
+
+[data-tone='cobalt'] {
+  --tone: var(--accent);
+}
+
+/* A band in the current project's tone (case-study headers) */
+.band--tone {
+  --band-bg: var(--tone, var(--cobalt-deep));
+  --band-fg: var(--on-dark);
+  --ink: var(--on-dark);
+  --ink-2: #e6dfd2;
+  --ink-3: #e6dfd2;
+  --rule: rgba(243, 237, 226, 0.25);
+  --rule-strong: rgba(243, 237, 226, 0.6);
+  --accent: #ffffff;
 }

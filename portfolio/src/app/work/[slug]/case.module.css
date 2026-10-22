@@ -1,6 +1,19 @@
 .page {
-  padding-top: calc(var(--nav-h) + var(--s-5));
   padding-bottom: var(--s-section);
+}
+
+.hero {
+  padding-top: calc(var(--nav-h) + var(--s-5));
+  padding-bottom: var(--s-7);
+}
+
+/* With a cover image, leave room for it to overlap the band's lower edge */
+.hero[data-has-cover] {
+  padding-bottom: clamp(6rem, 3rem + 10vw, 13rem);
+}
+
+.body {
+  padding-top: var(--s-8);
 }
 
 .crumbs {
@@ -10,7 +23,7 @@
   align-items: center;
   gap: var(--s-3);
   padding-bottom: var(--s-2);
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule-strong);
 }
 
 .crumbs :global(.arrow-link:hover .arrow--left) {
@@ -24,7 +37,7 @@
 .head {
   display: grid;
   gap: var(--s-4);
-  padding-block: var(--s-7) var(--s-7);
+  padding-top: var(--s-7);
 }
 
 .title {
@@ -45,7 +58,13 @@
 }
 
 .cover {
+  margin-top: calc(clamp(6rem, 3rem + 10vw, 13rem) * -1 - var(--s-8) + var(--s-6));
   margin-bottom: var(--s-8);
+}
+
+/* The mat would vanish against the band of the same colour; use paper */
+.cover :global(figure > div) {
+  background: var(--paper-3);
 }
 
 .layout {
@@ -118,7 +137,7 @@
 }
 
 .sectionTitle :global(.meta) {
-  color: var(--accent);
+  color: var(--tone, var(--accent));
 }
 
 .sectionBody {
@@ -166,7 +185,7 @@
   display: grid;
   gap: var(--s-2);
   padding-left: var(--s-5);
-  border-left: 1px solid var(--accent);
+  border-left: 2px solid var(--tone, var(--accent));
 }
 
 .decisions h3 {
@@ -194,8 +213,14 @@
   display: grid;
   gap: var(--s-3);
   margin-top: var(--s-section);
-  padding-top: var(--s-4);
-  border-top: 1px solid var(--ink);
+  padding: var(--s-6);
+  background: var(--paper-2);
+  border-top: 3px solid var(--ink);
+  transition: background-color var(--fast) var(--ease);
+}
+
+.next:hover {
+  background: var(--paper-3);
 }
 
 .nextName {

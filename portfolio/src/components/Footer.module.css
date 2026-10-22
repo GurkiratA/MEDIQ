@@ -1,15 +1,8 @@
 .footer {
   display: grid;
   gap: var(--s-5);
-  padding-top: var(--s-4);
+  padding-top: var(--s-7);
   padding-bottom: var(--s-7);
-}
-
-.footer::before {
-  content: '';
-  display: block;
-  height: 1px;
-  background: var(--ink);
 }
 
 .sign {
@@ -43,9 +36,6 @@
     align-items: baseline;
   }
 
-  .footer::before {
-    grid-column: 1 / -1;
-  }
 
   .sign {
     grid-column: 1 / 4;

@@ -36,7 +36,17 @@
 }
 
 .where a:hover {
-  color: var(--accent);
+  color: var(--tone, var(--accent));
+}
+
+/* The project's colour, as on its section and case study */
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.35rem;
+  vertical-align: 0.08em;
+  background: var(--tone, var(--ink-3));
 }
 
 .note {

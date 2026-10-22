@@ -62,7 +62,7 @@ function CaseLink({ project }: { project: Project }) {
 function Lead({ project, index, total }: Props) {
   const firstDecisions = project.decisions?.slice(0, 2) ?? []
   return (
-    <article id={project.slug} className={styles.lead} aria-labelledby={`${project.slug}-title`}>
+    <article id={project.slug} className={styles.lead} data-tone={project.tone} aria-labelledby={`${project.slug}-title`}>
       <Heading project={project} index={index} total={total} />
 
       {project.cover ? (
@@ -102,7 +102,7 @@ function Lead({ project, index, total }: Props) {
 /** Diagram-led: architecture on one side, story on the other. */
 function Split({ project, index, total }: Props) {
   return (
-    <article id={project.slug} className={styles.split} aria-labelledby={`${project.slug}-title`}>
+    <article id={project.slug} className={styles.split} data-tone={project.tone} aria-labelledby={`${project.slug}-title`}>
       <div className={styles.splitText}>
         <Heading project={project} index={index} total={total} />
         <div className={styles.splitBody} data-reveal>
@@ -119,7 +119,7 @@ function Split({ project, index, total }: Props) {
         <CaseLink project={project} />
       </div>
       <div className={styles.splitFigure} data-reveal>
-        <Diagram steps={project.architecture} caption={`Fig. ${num(index)} — How ${project.name} fits together`} />
+        <Diagram steps={project.architecture} caption={`Fig. ${num(index)} — How ${project.name} fits together`} dark />
       </div>
     </article>
   )
@@ -128,7 +128,7 @@ function Split({ project, index, total }: Props) {
 /** A smaller entry: text, screenshot and facts on one row. */
 function Brief({ project, index, total }: Props) {
   return (
-    <article id={project.slug} className={styles.brief} aria-labelledby={`${project.slug}-title`}>
+    <article id={project.slug} className={styles.brief} data-tone={project.tone} aria-labelledby={`${project.slug}-title`}>
       <div className={styles.briefText}>
         <Heading project={project} index={index} total={total} size="small" />
         <p className={styles.briefBody} data-reveal>

@@ -82,6 +82,8 @@ export type Project = {
   kind: string
   /** Home-page treatment: lead (large), split (diagram beside text), brief (compact). */
   layout: 'lead' | 'split' | 'brief'
+  /** The project's colour: used for its figure mats, numbering and case-study header. */
+  tone: 'clay' | 'teal' | 'plum' | 'cobalt'
   role: Maybe<string>
   /** Credit teammates and owners plainly. */
   credit?: string
@@ -117,6 +119,7 @@ export const projects: Project[] = [
     year: '2026',
     kind: 'Hackathon · Stormwater modelling',
     layout: 'lead',
+    tone: 'clay',
     role: todo(
       'Describe your role on RunoffLab. The public repo and its contribution record credit Rishik Rontala — state exactly what you contributed.',
     ),
@@ -216,6 +219,7 @@ export const projects: Project[] = [
     year: '2026',
     kind: 'Hackathon · Healthcare',
     layout: 'split',
+    tone: 'teal',
     role: todo('Describe what you built on MEDIQ — features, the dashboard, the clinical data model, the pitch.'),
     credit: 'Hackathon team project, with Agamjyot Singh Anand. Repository by GurkiratA.',
     stack: ['TypeScript', 'React', 'Vite', 'Three.js', 'Node.js', 'WebSockets', 'Claude Agent SDK', 'Zod', 'Zustand', 'MediaPipe'],
@@ -275,6 +279,7 @@ export const projects: Project[] = [
     year: '2026',
     kind: 'Collaboration · Machine learning',
     layout: 'brief',
+    tone: 'plum',
     role: 'Co-developer — dataset curation and testing.',
     credit: 'Built with Soumya Patel.',
     stack: ['Python', 'Flask', 'scikit-learn', 'pytest', 'KaTeX', 'Docker', 'GitHub Actions'],

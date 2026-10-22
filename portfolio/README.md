@@ -122,18 +122,15 @@ favicon is `src/app/icon.svg`.
 
 ## Design notes
 
-**Direction.** Light and editorial: ivory paper (`#f6f3ec`), charcoal ink and
-one deep cobalt accent (`#2340b5`). Cobalt only appears on numbering, the
-human-approval step in diagrams, links and hover states. Fine rules, a 12-column
-grid, deliberate asymmetry, and almost no rounded corners. All tokens are at
-the top of `src/app/globals.css`.
+**Direction.** Warm editorial: a parchment background (`#ece4d3`), charcoal ink and deep cobalt (`#1f3aa6`), with one colour per project — clay for RunoffLab, teal for MEDIQ, plum for DiscreteSolver — set with `tone` in `site.ts`. A project's colour appears on its figure mats, numbering, diagram and case-study header. Full-width bands break the page into chapters: a cobalt cover panel in the hero, a dark About band, a cobalt Contact band and an ink footer. Tokens live at the top of `src/app/globals.css`; dark bands re-map the ink tokens, so components work on any band unchanged.
+
+**Artwork.** The contour linework is generated, not stock. `python3 scripts/contours.py` traces contour lines over smooth noise with marching squares and writes small static SVGs to `public/art/` (needs NumPy).
 
 **Type.** Newsreader (serif) for the name, titles and pull quotes. Inter for
 reading and interface. JetBrains Mono for small metadata labels. Fonts are
 self-hosted through `next/font/local` with metric-matched fallbacks.
 
-**Signature.** The hero's "Contents" column: an index to the work, set like
-a magazine's contents page. Projects are labelled as figures ("Fig. 01"), and
+**Signature.** The hero's cobalt cover panel: contour art with a "Contents" index to the work, set like a magazine cover. Projects are labelled as figures ("Fig. 01"), and
 architecture is drawn as an ordered diagram rather than a stack of cards.
 
 **Motion.** Everything is short and optional:

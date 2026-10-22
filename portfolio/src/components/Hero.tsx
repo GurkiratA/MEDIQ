@@ -6,25 +6,26 @@ import styles from './Hero.module.css'
 export function Hero() {
   const github = filled(links.github)
   const resume = filled(links.resume)
+  const [first, ...rest] = profile.name.split(' ')
 
   return (
     <section className={`wrap ${styles.hero}`} aria-labelledby="hero-name">
-      <div className={`${styles.strip} meta`}>
-        <span>Portfolio</span>
-        <span>
-          {profile.field}, {profile.school}
-        </span>
-        <span className={styles.stripEnd}>Selected work, {projects[0]?.year}</span>
-      </div>
-
-      <h1 id="hero-name" className={styles.name}>
-        <span className={styles.nameLine}>{profile.name}</span>
-      </h1>
-
-      <div className={styles.body}>
-        <p className={`${styles.label} meta`} aria-hidden="true">
-          ¶ Approach
+      <div className={styles.main}>
+        <p className={`${styles.strip} meta`}>
+          <span>Portfolio</span>
+          <span>
+            {profile.field}, {profile.school}
+          </span>
         </p>
+
+        <h1 id="hero-name" className={styles.name}>
+          <span className={styles.line}>
+            <span className={styles.word}>{first}</span>
+          </span>
+          <span className={styles.line}>
+            <em className={styles.word}>{rest.join(' ')}</em>
+          </span>
+        </h1>
 
         <div className={styles.copy}>
           <p className={styles.headline}>{profile.headline}</p>
@@ -49,33 +50,32 @@ export function Hero() {
             ) : null}
           </div>
         </div>
+      </div>
 
-        <nav className={styles.contents} aria-labelledby="contents-title">
+      {/* The cover: a cobalt plate with contour linework and the contents */}
+      <aside className={styles.cover} aria-labelledby="contents-title">
+        <div className={styles.coverHead}>
           <h2 id="contents-title" className="meta">
             Contents
           </h2>
-          <ol>
-            {projects.map((p, i) => (
-              <li key={p.slug}>
-                <a href={`#${p.slug}`} className={styles.entry}>
-                  <span className={styles.entryNum}>{String(i + 1).padStart(2, '0')}</span>
-                  <span className={styles.entryName}>{p.name}</span>
-                  <span className={`${styles.entryKind} meta`}>{p.kind}</span>
-                  <ArrowRight className={`arrow arrow--right ${styles.entryArrow}`} />
-                </a>
-              </li>
-            ))}
-            <li>
-              <a href="#about" className={styles.entry}>
-                <span className={styles.entryNum}>{String(projects.length + 1).padStart(2, '0')}</span>
-                <span className={styles.entryName}>About &amp; skills</span>
-                <span className={`${styles.entryKind} meta`}>Who’s building this</span>
+          <span className="meta" aria-hidden="true">
+            Nº {String(projects.length).padStart(2, '0')}
+          </span>
+        </div>
+        <ol className={styles.entries}>
+          {projects.map((p, i) => (
+            <li key={p.slug} data-tone={p.tone}>
+              <a href={`#${p.slug}`} className={styles.entry}>
+                <span className={styles.entryNum}>{String(i + 1).padStart(2, '0')}</span>
+                <span className={styles.entryName}>{p.name}</span>
+                <span className={`${styles.entryKind} meta`}>{p.kind}</span>
                 <ArrowRight className={`arrow arrow--right ${styles.entryArrow}`} />
               </a>
             </li>
-          </ol>
-        </nav>
-      </div>
+          ))}
+        </ol>
+        <p className={`${styles.coverCaption} meta`}>Contours traced with marching squares</p>
+      </aside>
     </section>
   )
 }

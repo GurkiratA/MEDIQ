@@ -1,83 +1,94 @@
 .hero {
-  padding-top: calc(var(--nav-h) + var(--s-6));
+  display: grid;
+  gap: var(--s-7);
+  padding-top: calc(var(--nav-h) + var(--s-5));
   padding-bottom: var(--s-section);
+}
+
+.main {
+  display: grid;
+  align-content: start;
 }
 
 /* Masthead strip */
 .strip {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.2rem var(--s-5);
   padding-top: var(--s-3);
   border-top: 1px solid var(--ink);
-}
-
-.stripEnd {
-  display: none;
 }
 
 .name {
   margin-top: var(--s-6);
   font-family: var(--serif);
   font-weight: 380;
-  font-size: clamp(3.4rem, 1rem + 13.5vw, 11.5rem);
-  line-height: 0.92;
+  font-size: clamp(4rem, 1rem + 15vw, 11rem);
+  line-height: 0.86;
   letter-spacing: -0.045em;
   margin-left: -0.04em;
 }
 
-.nameLine {
+.line {
   display: block;
+}
+
+.word {
+  display: inline-block;
+  font-style: normal;
+}
+
+.line + .line {
+  padding-left: 0.55em;
+}
+
+.line + .line .word {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 360;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   /* Transform-only load-in: the name is never invisible, so it paints at once */
-  .nameLine {
+  .word {
     animation: settle 1100ms var(--ease) both;
   }
 
-  .copy,
-  .contents {
-    animation: settle-sm 900ms var(--ease) 120ms both;
+  .line + .line .word {
+    animation-delay: 90ms;
   }
 
-  .contents {
-    animation-delay: 220ms;
+  .copy,
+  .cover {
+    animation: settle-sm 900ms var(--ease) 140ms both;
+  }
+
+  .cover {
+    animation-delay: 60ms;
   }
 }
 
 @keyframes settle {
   from {
-    transform: translateY(0.12em);
+    transform: translateY(0.14em);
   }
 }
 
 @keyframes settle-sm {
   from {
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
 }
 
-.body {
+.copy {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  row-gap: var(--s-7);
+  gap: var(--s-5);
   margin-top: var(--s-7);
 }
 
-.label {
-  display: none;
-}
-
-.copy {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: var(--s-5);
-}
-
 .headline {
-  font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2.15rem);
+  font-size: clamp(1.4rem, 1.1rem + 1.1vw, 2rem);
   font-weight: 500;
   line-height: 1.22;
   letter-spacing: -0.02em;
@@ -86,7 +97,7 @@
 }
 
 .intro {
-  max-width: var(--measure);
+  max-width: 34rem;
   color: var(--ink-2);
   text-wrap: pretty;
 }
@@ -98,14 +109,52 @@
   margin-top: var(--s-2);
 }
 
-/* Contents: the hero's signature — a magazine contents column */
-.contents {
-  grid-column: 1 / -1;
+/* --- Cover panel ---------------------------------------------------------- */
+
+.cover {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s-6);
+  padding: var(--s-5);
+  min-height: 30rem;
+  margin-inline: calc(var(--gutter) * -1);
+  background: var(--cobalt-deep);
+  color: var(--on-dark);
+  overflow: hidden;
+  --ink: var(--on-dark);
+  --ink-2: var(--on-dark-2);
+  --ink-3: var(--on-dark-2);
 }
 
-.contents h2 {
+.cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('/art/contours-cover.svg') center / cover no-repeat;
+}
+
+/* A soft lift behind the list so the linework never fights the text */
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 75%;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(23, 43, 125, 0.92) 35%, rgba(23, 43, 125, 0));
+}
+
+.coverHead {
+  display: flex;
+  justify-content: space-between;
   padding-bottom: var(--s-3);
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid rgba(243, 237, 226, 0.55);
+}
+
+.entries {
+  align-self: end;
 }
 
 .entry {
@@ -115,85 +164,89 @@
   align-items: baseline;
   column-gap: var(--s-3);
   padding: var(--s-4) 0;
-  border-bottom: 1px solid var(--rule);
-  transition: background-color var(--fast) var(--ease);
+  border-bottom: 1px solid rgba(243, 237, 226, 0.22);
 }
 
 .entryNum {
   grid-area: num;
   font-family: var(--mono);
   font-size: var(--t-meta);
-  color: var(--accent);
+  color: var(--on-dark-2);
+}
+
+/* A swatch of the project's own colour, matching its section below */
+.entryNum::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin-bottom: 0.4rem;
+  background: var(--tone);
+  outline: 1px solid rgba(243, 237, 226, 0.6);
+  outline-offset: 1px;
 }
 
 .entryName {
   grid-area: name;
   font-family: var(--serif);
-  font-size: 1.5rem;
-  line-height: 1.2;
+  font-size: clamp(1.45rem, 1.2rem + 0.8vw, 1.9rem);
+  line-height: 1.15;
   letter-spacing: -0.01em;
-  transition: color var(--fast) var(--ease);
+  transition: transform var(--fast) var(--ease);
 }
 
 .entryKind {
   grid-area: kind;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
 .entryArrow {
   grid-area: arrow;
   align-self: center;
-  color: var(--ink-3);
-  transition: transform var(--fast) var(--ease), color var(--fast) var(--ease);
+  transition: transform var(--fast) var(--ease);
 }
 
 .entry:hover .entryName {
-  color: var(--accent);
+  transform: translateX(4px);
 }
 
 .entry:hover .entryArrow {
-  color: var(--accent);
-  transform: translateX(3px);
+  transform: translateX(4px);
+}
+
+.entry:hover .entryNum {
+  color: var(--on-dark);
+}
+
+.coverCaption {
+  opacity: 0.85;
 }
 
 @media (min-width: 720px) {
-  .strip {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gap);
-  }
-
-  .strip > :nth-child(1) {
-    grid-column: 1 / 4;
-  }
-
-  .strip > :nth-child(2) {
-    grid-column: 4 / 10;
-  }
-
-  .stripEnd {
-    display: block;
-    grid-column: 10 / 13;
-    text-align: right;
+  .cover {
+    margin-inline: 0;
+    padding: var(--s-6);
   }
 }
 
 @media (min-width: 1000px) {
   .hero {
-    padding-top: calc(var(--nav-h) + var(--s-7));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: stretch;
+    padding-top: calc(var(--nav-h) + var(--s-6));
   }
 
-  .label {
-    display: block;
-    grid-column: 1 / 3;
-    padding-top: 0.55rem;
+  .main {
+    grid-column: 1 / 8;
   }
 
-  .copy {
-    grid-column: 3 / 8;
+  .name {
+    font-size: clamp(5rem, 1rem + 8.4vw, 10.5rem);
   }
 
-  .contents {
-    grid-column: 9 / 13;
-    padding-top: 0.35rem;
+  .cover {
+    grid-column: 8 / 13;
+    min-height: 100%;
   }
 }

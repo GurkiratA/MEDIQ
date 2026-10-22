@@ -22,7 +22,7 @@
 }
 
 .num {
-  color: var(--accent);
+  color: var(--tone, var(--accent));
 }
 
 .title {
@@ -100,7 +100,7 @@
   gap: var(--s-4);
   margin-top: var(--s-3);
   padding-left: var(--s-4);
-  border-left: 1px solid var(--accent);
+  border-left: 2px solid var(--tone, var(--accent));
   font-size: var(--t-small);
 }
 
@@ -136,7 +136,7 @@
 
 .pull {
   padding-left: var(--s-5);
-  border-left: 1px solid var(--accent);
+  border-left: 2px solid var(--tone, var(--accent));
   font-family: var(--serif);
   font-style: italic;
   font-size: var(--t-h4);

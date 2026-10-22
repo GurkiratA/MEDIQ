@@ -1,7 +1,7 @@
 import { projects, skills } from '@/content/site'
 import styles from './Skills.module.css'
 
-const nameOf = new Map(projects.map((p) => [p.slug, p.name]))
+const bySlug = new Map(projects.map((p) => [p.slug, p]))
 
 export function Skills() {
   return (
@@ -37,8 +37,9 @@ export function Skills() {
                       {s.usedIn.map((slug, i) => (
                         <span key={slug}>
                           {i ? ', ' : ''}
-                          <a href={`/work/${slug}/`} className="link">
-                            {nameOf.get(slug) ?? slug}
+                          <a href={`/work/${slug}/`} className="link" data-tone={bySlug.get(slug)?.tone}>
+                            <span className={styles.dot} aria-hidden="true" />
+                            {bySlug.get(slug)?.name ?? slug}
                           </a>
                         </span>
                       ))}

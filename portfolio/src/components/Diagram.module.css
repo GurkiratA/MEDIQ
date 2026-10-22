@@ -1,8 +1,29 @@
 .figure {
+  --dg-bg: var(--paper-3);
+  --dg-fg: var(--ink);
+  --dg-muted: var(--ink-3);
+  --dg-line: var(--rule-strong);
+  --dg-gate: var(--tone, var(--accent));
   display: grid;
   gap: var(--s-5);
   padding: var(--s-6) var(--s-5);
-  background: var(--paper-2);
+  background: var(--dg-bg);
+  color: var(--dg-fg);
+  border-top: 3px solid var(--tone, var(--accent));
+}
+
+.figure[data-dark] {
+  --dg-bg: var(--tone, var(--cobalt-deep));
+  --dg-fg: var(--on-dark);
+  --dg-muted: rgba(243, 237, 226, 0.78);
+  --dg-line: rgba(243, 237, 226, 0.45);
+  --dg-gate: var(--on-dark);
+  border-top: 0;
+  padding: var(--s-6);
+}
+
+.figure :global(.meta) {
+  color: var(--dg-muted);
 }
 
 .list {
@@ -18,7 +39,7 @@
   top: 0.7rem;
   bottom: 2.1rem;
   width: 1px;
-  background: var(--rule-strong);
+  background: var(--dg-line);
 }
 
 .step {
@@ -40,8 +61,8 @@
   top: 0.45rem;
   width: 11px;
   height: 11px;
-  border: 1px solid var(--ink);
-  background: var(--paper-2);
+  border: 1px solid var(--dg-fg);
+  background: var(--dg-bg);
 }
 
 .index {
@@ -59,22 +80,23 @@
 
 .detail {
   grid-column: 2;
-  color: var(--ink-3);
+  color: var(--dg-muted);
   font-size: var(--t-small);
   line-height: 1.5;
 }
 
 .step[data-gate] .node {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--dg-gate);
+  background: var(--dg-gate);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dg-gate) 25%, transparent);
 }
 
 .step[data-gate] .label {
-  color: var(--accent);
+  color: var(--dg-gate);
 }
 
 .gateTag {
-  color: var(--accent);
+  color: var(--dg-gate) !important;
   border: 1px solid currentColor;
   padding: 0 0.35rem;
   font-size: 0.65rem;

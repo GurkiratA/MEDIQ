@@ -161,92 +161,97 @@ export default async function CaseStudy({ params }: Params) {
   const sections = sectionsFor(project)
 
   return (
-    <article className={`wrap ${styles.page}`} aria-labelledby="case-title">
-      <nav className={styles.crumbs} aria-label="Breadcrumb">
-        <a href="/#work" className="arrow-link">
-          <ArrowLeft />
-          All work
-        </a>
-        <span className="meta">
-          Case study {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
-        </span>
-      </nav>
-
-      <header className={styles.head}>
-        <p className="meta">
-          {project.kind} · {project.year}
-        </p>
-        <h1 id="case-title" className={styles.title}>
-          {project.name}
-        </h1>
-        <p className={styles.summary}>{project.summary}</p>
-      </header>
-
-      {project.cover ? (
-        <div className={styles.cover}>
-          <Plate figure={project.cover} label="Fig. 1" sizes="(min-width: 1440px) 1330px, 94vw" priority />
-        </div>
-      ) : null}
-
-      <div className={styles.layout}>
-        <aside className={styles.side}>
-          <nav aria-label="On this page" className={styles.toc}>
-            <p className="meta">On this page</p>
-            <ol>
-              {sections.map((s) => (
-                <li key={s.id}>
-                  <a href={`#${s.id}`}>{s.title}</a>
-                </li>
-              ))}
-            </ol>
+    <article className={styles.page} data-tone={project.tone} aria-labelledby="case-title">
+      <div className="band band--tone band--art">
+        <div className={`wrap ${styles.hero}`} data-has-cover={project.cover ? true : undefined}>
+          <nav className={styles.crumbs} aria-label="Breadcrumb">
+            <a href="/#work" className="arrow-link">
+              <ArrowLeft />
+              All work
+            </a>
+            <span className="meta">
+              Case study {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
+            </span>
           </nav>
-          <ProjectFacts project={project} />
-        </aside>
 
-        <div className={styles.content}>
-          {sections.map((s, i) => (
-            <section key={s.id} id={s.id} className={styles.section} aria-labelledby={`${s.id}-title`}>
-              <h2 id={`${s.id}-title`} className={styles.sectionTitle}>
-                <span className="meta">{String(i + 1).padStart(2, '0')}</span>
-                {s.title}
-              </h2>
-              <div className={styles.sectionBody}>{s.body}</div>
-            </section>
-          ))}
-
-          {project.sources?.length ? (
-            <section className={styles.sources} aria-labelledby="sources-title">
-              <h2 id="sources-title" className="meta">
-                Sources
-              </h2>
-              <p>
-                Facts and figures on this page come from the project’s own code and documentation:{' '}
-                {project.sources.map((s, i) => (
-                  <span key={s.href}>
-                    {i ? ', ' : ''}
-                    <a href={s.href} className="link" target="_blank" rel="noopener noreferrer">
-                      {s.label}
-                    </a>
-                  </span>
-                ))}
-                .
-              </p>
-            </section>
-          ) : null}
+          <header className={styles.head}>
+            <p className="meta">
+              {project.kind} · {project.year}
+            </p>
+            <h1 id="case-title" className={styles.title}>
+              {project.name}
+            </h1>
+            <p className={styles.summary}>{project.summary}</p>
+          </header>
         </div>
       </div>
 
-      {next && next.slug !== project.slug ? (
-        <a href={`/work/${next.slug}/`} className={styles.next}>
-          <span className="meta">Next case study</span>
-          <span className={styles.nextName}>
-            {next.name}
-            <ArrowRight size={28} />
-          </span>
-          <span className={styles.nextSummary}>{next.summary}</span>
-        </a>
-      ) : null}
+      <div className={`wrap ${styles.body}`}>
+        {project.cover ? (
+          <div className={styles.cover}>
+            <Plate figure={project.cover} label="Fig. 1" sizes="(min-width: 1440px) 1330px, 94vw" priority />
+          </div>
+        ) : null}
 
+        <div className={styles.layout}>
+          <aside className={styles.side}>
+            <nav aria-label="On this page" className={styles.toc}>
+              <p className="meta">On this page</p>
+              <ol>
+                {sections.map((s) => (
+                  <li key={s.id}>
+                    <a href={`#${s.id}`}>{s.title}</a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+            <ProjectFacts project={project} />
+          </aside>
+
+          <div className={styles.content}>
+            {sections.map((s, i) => (
+              <section key={s.id} id={s.id} className={styles.section} aria-labelledby={`${s.id}-title`}>
+                <h2 id={`${s.id}-title`} className={styles.sectionTitle}>
+                  <span className="meta">{String(i + 1).padStart(2, '0')}</span>
+                  {s.title}
+                </h2>
+                <div className={styles.sectionBody}>{s.body}</div>
+              </section>
+            ))}
+
+            {project.sources?.length ? (
+              <section className={styles.sources} aria-labelledby="sources-title">
+                <h2 id="sources-title" className="meta">
+                  Sources
+                </h2>
+                <p>
+                  Facts and figures on this page come from the project’s own code and documentation:{' '}
+                  {project.sources.map((s, i) => (
+                    <span key={s.href}>
+                      {i ? ', ' : ''}
+                      <a href={s.href} className="link" target="_blank" rel="noopener noreferrer">
+                        {s.label}
+                      </a>
+                    </span>
+                  ))}
+                  .
+                </p>
+              </section>
+            ) : null}
+          </div>
+        </div>
+
+        {next && next.slug !== project.slug ? (
+          <a href={`/work/${next.slug}/`} className={styles.next}>
+            <span className="meta">Next case study</span>
+            <span className={styles.nextName}>
+              {next.name}
+              <ArrowRight size={28} />
+            </span>
+            <span className={styles.nextSummary}>{next.summary}</span>
+          </a>
+        ) : null}
+      </div>
     </article>
   )
 }
