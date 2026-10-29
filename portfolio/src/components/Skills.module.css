@@ -1,0 +1,70 @@
+.table {
+  border-bottom: 1px solid var(--rule);
+}
+
+.row {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--rule);
+}
+
+.row h3 {
+  color: var(--ink);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--s-4) var(--gap);
+}
+
+.items li {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.name {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  line-height: 1.25;
+}
+
+.where {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+}
+
+.where a:hover {
+  color: var(--tone, var(--accent));
+}
+
+/* The project's colour, as on its section and case study */
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.35rem;
+  vertical-align: 0.08em;
+  background: var(--tone, var(--ink-3));
+}
+
+.note {
+  margin-top: var(--s-4);
+}
+
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  .row h3 {
+    grid-column: 1 / 4;
+    padding-top: 0.45rem;
+  }
+
+  .items {
+    grid-column: 4 / 13;
+  }
+}

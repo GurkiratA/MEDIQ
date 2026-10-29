@@ -1,0 +1,242 @@
+.list {
+  display: grid;
+}
+
+.list > article + article {
+  margin-top: var(--s-8);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--rule);
+}
+
+/* --- Shared heading ------------------------------------------------------ */
+
+.heading {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.heading > p:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.25rem;
+}
+
+.num {
+  color: var(--tone, var(--accent));
+}
+
+.title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--t-h3);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.title[data-size='large'] {
+  font-size: clamp(2.6rem, 1.2rem + 5.6vw, 7rem);
+  letter-spacing: -0.04em;
+}
+
+.title a {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: color var(--fast) var(--ease), background-size 400ms var(--ease);
+}
+
+.title a:hover {
+  color: var(--accent);
+  background-size: 100% 1px;
+}
+
+.summary {
+  max-width: 40rem;
+  font-size: var(--t-lede);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.caseLink {
+  justify-self: start;
+  margin-top: var(--s-3);
+  border-bottom: 1px solid var(--ink);
+}
+
+.caseLink:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* --- Lead ---------------------------------------------------------------- */
+
+.lead {
+  display: grid;
+  gap: var(--s-7);
+}
+
+.leadPlate {
+  min-width: 0;
+}
+
+.spread {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.col {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  color: var(--ink-2);
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.col > h4 {
+  color: var(--ink);
+}
+
+.notes {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--tone, var(--accent));
+  font-size: var(--t-small);
+}
+
+.notes strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.colFacts {
+  align-self: start;
+}
+
+/* --- Split --------------------------------------------------------------- */
+
+.split {
+  display: grid;
+  gap: var(--s-7);
+}
+
+.splitText {
+  display: grid;
+  gap: var(--s-6);
+  align-content: start;
+}
+
+.splitBody {
+  display: grid;
+  gap: var(--s-5);
+  color: var(--ink-2);
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.pull {
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--tone, var(--accent));
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--t-h4);
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.splitFigure {
+  align-self: start;
+}
+
+/* --- Brief --------------------------------------------------------------- */
+
+.brief {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.briefText {
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.briefBody {
+  color: var(--ink-2);
+  max-width: var(--measure);
+}
+
+/* --- Wide screens --------------------------------------------------------- */
+
+@media (min-width: 1000px) {
+  .lead > .heading {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: end;
+  }
+
+  .lead > .heading > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .lead > .heading .title {
+    grid-column: 1 / 8;
+  }
+
+  .lead > .heading .summary {
+    grid-column: 8 / 13;
+    padding-bottom: 0.6rem;
+  }
+
+  .spread {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  .spread > :nth-child(1) {
+    grid-column: 1 / 5;
+  }
+
+  .spread > :nth-child(2) {
+    grid-column: 5 / 9;
+  }
+
+  .spread > :nth-child(3) {
+    grid-column: 10 / 13;
+  }
+
+  .split {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  /* Diagram on the left, text on the right: deliberate asymmetry */
+  .splitFigure {
+    grid-column: 1 / 6;
+    grid-row: 1;
+    position: sticky;
+    top: calc(var(--nav-h) + var(--s-6));
+  }
+
+  .splitText {
+    grid-column: 7 / 13;
+    grid-row: 1;
+  }
+
+  .brief {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  .briefText {
+    grid-column: 1 / 5;
+  }
+
+  .briefPlate {
+    grid-column: 5 / 10;
+  }
+
+  .briefFacts {
+    grid-column: 10 / 13;
+  }
+}
